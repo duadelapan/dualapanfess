@@ -303,7 +303,7 @@ def process_follow_event(follower):
                                 f"kirim chat melalui 𝗗𝗠 atau 𝗢𝗔 𝗟𝗜𝗡𝗘 𝟮𝟴𝗙𝗘𝗦𝗦 𝗕𝗢𝗧\n"
                                 f"🛡(PRIVASI TERJAGA)🛡\n\n"
                                 f"Segera kirim menfess pertamamu!\n"
-                                f"LINK LINE BOT DI BIO")
+                                f"RULES: https://28fess.carrd.co/")
     except tweepy.TweepError as e:
         print(e)
         api.send_direct_message(follower_id,
