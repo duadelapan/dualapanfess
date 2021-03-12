@@ -19,7 +19,7 @@ def get_question_str(question_id):
 
 def add_question(question):
     new_question = Question(question=question)
-    db.session.add(question)
+    db.session.add(new_question)
     db.session.commit()
     return new_question.id
 
