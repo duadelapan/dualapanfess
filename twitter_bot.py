@@ -1,13 +1,13 @@
 import io
 import os
 import time
-from datetime import datetime
 
 import requests
 import tweepy
 from TwitterAPI import TwitterAPI
 from requests_oauthlib import OAuth1
 
+import util
 from tables import db, TwitterAccount
 
 ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
@@ -16,7 +16,6 @@ API_KEY = os.environ.get("TWITTER_API_KEY")
 API_KEY_SECRET = os.environ.get("TWITTER_API_SECRET")
 auth = tweepy.OAuthHandler(API_KEY, API_KEY_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 api = tweepy.API(auth)
 CANCEL_OPTIONS = [
     {
@@ -56,8 +55,8 @@ class MessageData:
 
 
 class DirectMessage:
-    def __init__(self, recepient_id=None, sender_id=None, source_app_id=None, message_data: MessageData = None):
-        self.recepient_id = recepient_id
+    def __init__(self, recipient_id=None, sender_id=None, source_app_id=None, message_data: MessageData = None):
+        self.recipient_id = recipient_id
         self.sender_id = sender_id
         self.source_app_id = source_app_id
         self.message_data = message_data
@@ -67,7 +66,7 @@ class DirectMessage:
                     {"type": "message_create",
                      "message_create":
                          {"target":
-                              {"recipient_id": self.recepient_id},
+                              {"recipient_id": self.recipient_id},
                           "message_data": self.message_data.get_dict()
                           }}}
 
@@ -79,20 +78,6 @@ def upload_media(url):
     media = api.media_upload(filename="twitter_img", file=file)
     file.close()
     return media.media_id
-
-
-def check_timeout(then, sec):
-    then_datetime = datetime.strptime(then, TIME_FORMAT)
-    now = datetime.utcnow()
-    return (now - then_datetime).total_seconds() <= sec
-
-
-def last_index(iterable, element):
-    try:
-        index = list(reversed(iterable)).index(element)
-    except ValueError:
-        return None
-    return len(iterable) - index - 1
 
 
 def test_tweet():
@@ -127,12 +112,13 @@ def send_confirm_message(user_id, message):
 
 
 def tweet(msg: str, file=None, url=None):
+    msg = util.clear_tweet(msg)
     if len(msg) > 550:
         return f"❗TWEET ERROR❗\n{len(msg)} exceeds the characters limit (550)."
     media = None
     msg2 = None
     if len(msg) > 280:
-        space_index = last_index(msg[:273], " ")
+        space_index = util.last_index(msg[:273], " ")
         msg_is_split = False
         if space_index and space_index > 200:
             space_index += 1
@@ -192,49 +178,49 @@ def process_direct_message_event(message_obj: DirectMessage):
     message_text_lower = message_text.lower()
     userID = message_obj.sender_id
     account = TwitterAccount.query.get(userID)
+
     if not account:
         account = TwitterAccount(account_id=userID)
         db.session.add(account)
         db.session.commit()
-    # ignore casing
+
     if "dupan!" in message_text.lower():
         account.tweet_phase = "confirm"
         account.next_tweet_msg = message_text
-        account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
+        account.last_tweet_req = util.datetime_now_string()
         if message_obj.message_data.media_url:
-            account.next_tweet_msg = message_text[:last_index(message_text, " ")]
+            account.next_tweet_msg = message_text[:util.last_index(message_text, " ")]
             account.img_soon = True
             account.tweet_phase = "confirm " + message_obj.message_data.media_url
         send_confirm_message(userID, account.next_tweet_msg)
         db.session.commit()
+
     elif message_text_lower == "/tweet28fess":
         account.tweet_phase = "from"
         account.next_tweet_msg = "from: "
-        account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
+        account.last_tweet_req = util.datetime_now_string()
         db.session.commit()
         dm_quick_reply_options(userID,
                                f"from: \n\n/canceltweet to cancel ❌\n"
                                f"request: {time.time()}",
                                CANCEL_OPTIONS)
+
     else:
         phase = account.tweet_phase
         if phase:
             if message_text_lower == "/canceltweet":
-                account.tweet_phase = ""
-                account.next_tweet_msg = ""
-                account.last_tweet_req = ""
-                account.img_soon = False
+                util.clear_account_tweet_data(account)
                 api.send_direct_message(userID,
                                         "Tweet Cancelled\n"
                                         f"request: {time.time()}")
             else:
-                if check_timeout(account.last_tweet_req, 300):
-                    now = datetime.utcnow().strftime(TIME_FORMAT)
+                if util.check_timeout(account.last_tweet_req, 300):
+                    now = util.datetime_now_string()
                     account.last_tweet_req = now
                     if account.img_soon and phase == "img" and message_obj.message_data.media_url:
                         account.tweet_phase = "confirm " + message_obj.message_data.media_url
                         send_confirm_message(userID, account.next_tweet_msg)
-                        account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
+                        account.last_tweet_req = util.datetime_now_string()
                     elif phase == "from":
                         account.tweet_phase = "to"
                         account.next_tweet_msg += message_text + "\nto: "
@@ -253,20 +239,16 @@ def process_direct_message_event(message_obj: DirectMessage):
                         account.tweet_phase = "confirm"
                         account.next_tweet_msg = msg
                         if message_obj.message_data.media_url:
-                            account.next_tweet_msg = msg[:last_index(msg, " ")]
+                            account.next_tweet_msg = msg[:util.last_index(msg, " ")]
                             account.img_soon = True
                             account.tweet_phase = "confirm " + message_obj.message_data.media_url
                         send_confirm_message(userID, account.next_tweet_msg)
                     elif phase.startswith("confirm") and message_text_lower == "/send":
-                        account.tweet_phase = ""
-                        account.last_tweet_req = ""
                         if account.img_soon:
                             msg_media_url = phase.split(" ")[-1]
                             url = tweet(account.next_tweet_msg, url=msg_media_url)
-                            account.img_soon = False
                         else:
                             url = tweet(account.next_tweet_msg)
-                        account.next_tweet_msg = ""
                         if url.startswith("https"):
                             account.last_tweet = now
                             message = f"Tweet Posted.{url}"
@@ -274,11 +256,9 @@ def process_direct_message_event(message_obj: DirectMessage):
                             message = url
                         api.send_direct_message(userID,
                                                 message)
+                        util.clear_account_tweet_data(account)
                 else:
-                    account.tweet_phase = ""
-                    account.next_tweet_msg = ""
-                    account.last_tweet_req = ""
-                    account.img_soon = False
+                    util.clear_account_tweet_data(account)
             db.session.commit()
     return None
 
