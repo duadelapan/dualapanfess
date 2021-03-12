@@ -540,7 +540,7 @@ def handle_message(event):
             search_name = event.message.text[7:]
             accounts = LineAccount.query.filter(LineAccount.name.ilike(f"%{search_name}%"))
             if accounts:
-                msg_ids = '\n'.join([search_account.id for search_account in accounts])
+                msg_ids = '\n'.join([search_account.account_id for search_account in accounts])
                 line_bot_api.reply_message(
                     event.reply_token,
                     TextSendMessage(f"ID:\n{msg_ids}")
