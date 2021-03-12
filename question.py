@@ -2,13 +2,14 @@ from tables import db, Question
 
 
 def search_question(keyword):
-    questions = Question.query.filter(Question.question.ilike(keyword)).all()
+    look_for = f"%{keyword}%"
+    questions = Question.query.filter(Question.question.ilike(look_for)).all()
     if questions:
         message = ""
         for question in questions:
             message += f"ID: {question.id}\n{question.question}\nANS:\n{question.answer}\n\n"
         return message
-    return "No question found"
+    return f"keyword: {keyword}\nNo question found"
 
 
 def get_question_str(question_id):
