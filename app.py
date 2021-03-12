@@ -560,6 +560,21 @@ def handle_message(event):
             requested_account.question_access = False
             db.session.commit()
 
+        elif user_message.startswith("/delq "):
+            question_id = user_message[6:]
+            if question_id.isnumeric():
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(delete_question(question_id))
+                )
+
+        elif user_message == "/delqall":
+            delete_all()
+            line_bot_api.reply_message(
+                event.reply_message,
+                TextSendMessage("All Question deleted")
+            )
+
 
 if __name__ == "__main__":
     app.run()

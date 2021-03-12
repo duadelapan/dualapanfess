@@ -48,5 +48,5 @@ def delete_question(question_id):
     if question:
         db.session.delete(question)
         db.session.commit()
-        return True
+        return question.question
     return False
