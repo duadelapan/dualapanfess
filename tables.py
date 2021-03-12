@@ -11,6 +11,8 @@ class LineAccount(db.Model):
     last_tweet_req = db.Column(db.String(100))
     next_tweet_msg = db.Column(db.Text)
     tweet_phase = db.Column(db.String(50))
+    is_add_question = db.Column(db.Boolean, default=False)
+    question_id = db.Column(db.Integer)
 
 
 class LineGroup(db.Model):
