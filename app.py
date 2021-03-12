@@ -420,7 +420,7 @@ def handle_message(event):
         if account.question_access:
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(search_question(event.message.text[16:]))
+                TextSendMessage(search_question(event.message.text[9:]))
             )
         else:
             line_bot_api.reply_message(
