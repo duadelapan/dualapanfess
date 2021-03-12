@@ -583,6 +583,13 @@ def handle_message(event):
                 TextSendMessage("All Question deleted")
             )
 
+        elif user_message == "/allacc":
+            all_accounts = LineAccount.query.filter_by(question_access=True).all()
+            line_bot_api.reply_message(
+                event.reply_message,
+                TextSendMessage("\n".join([acc.name for acc in all_accounts]))
+            )
+
 
 if __name__ == "__main__":
     app.run()
