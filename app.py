@@ -579,14 +579,14 @@ def handle_message(event):
         elif user_message == "/delqall":
             delete_all()
             line_bot_api.reply_message(
-                event.reply_message,
+                event.reply_token,
                 TextSendMessage("All Question deleted")
             )
 
         elif user_message == "/allacc":
             all_accounts = LineAccount.query.filter_by(question_access=True).all()
             line_bot_api.reply_message(
-                event.reply_message,
+                event.reply_token,
                 TextSendMessage("\n".join([acc.name for acc in all_accounts]))
             )
 
