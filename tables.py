@@ -13,6 +13,7 @@ class LineAccount(db.Model):
     tweet_phase = db.Column(db.String(50))
     is_add_question = db.Column(db.Boolean, default=False)
     question_id = db.Column(db.Integer)
+    question_access = db.Column(db.Boolean, default=False)
 
 
 class LineGroup(db.Model):

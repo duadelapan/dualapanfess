@@ -19,10 +19,13 @@ def get_question_str(question_id):
 
 
 def add_question(question):
-    new_question = Question(question=question)
-    db.session.add(new_question)
-    db.session.commit()
-    return new_question.id
+    questions = Question.query.filter(Question.question.ilike(f"%{question}%")).first()
+    if not questions:
+        new_question = Question(question=question)
+        db.session.add(new_question)
+        db.session.commit()
+        return new_question.id
+    return False
 
 
 def add_answer(question_id, answer):

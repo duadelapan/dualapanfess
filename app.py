@@ -37,6 +37,7 @@ line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+MY_LINE_ID = "Ub2cd3e3460664f1ea60deab2b3863c55"
 
 
 def get_delta_time(year, month, day=0, hour=0):
@@ -367,41 +368,65 @@ def handle_message(event):
             )
         db.session.commit()
     elif user_message.startswith("/addq ") and len(user_message) > len("/addq "):
-        account.is_add_question = True
-        question = event.message.text[6:]
-        question_id = add_question(question)
-        account.question_id = question_id
-        db.session.commit()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(f"Question Added. ID: {question_id}\nAnswer: ")
-        )
+        if account.question_access:
+            account.is_add_question = True
+            question = event.message.text[6:]
+            question_id = add_question(question)
+            if question_id:
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(f"Question Added. ID: {question_id}\nAnswer: ")
+                )
+                account.question_id = question_id
+                db.session.commit()
+            else:
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(f"Question already exist.\n{search_question(question)}")
+                )
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage("Access Denied.")
+            )
 
     elif user_message.startswith("/addans ") and len(user_message) > len("/addans "):
-        message_list = event.message.text.split(" ")
-        question_id = message_list[1]
-        try:
-            int(question_id)
-            answer = " ".join(message_list[2:])
-        except ValueError:
-            message = "error: invalid input"
-        except IndexError:
-            message = "error: invalid input"
-        else:
-            if add_answer(question_id, answer):
-                message = get_question_str(question_id)
+        if account.question_access:
+            message_list = event.message.text.split(" ")
+            question_id = message_list[1]
+            try:
+                int(question_id)
+                answer = " ".join(message_list[2:])
+            except ValueError:
+                message = "error: invalid input"
+            except IndexError:
+                message = "error: invalid input"
             else:
-                message = "ID invalid"
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(message)
-        )
+                if add_answer(question_id, answer):
+                    message = get_question_str(question_id)
+                else:
+                    message = "ID invalid"
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(message)
+            )
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage("Access Denied.")
+            )
 
     elif user_message.startswith("/searchq ") and len(user_message) > len("/searchq "):
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(search_question(event.message.text[16:]))
-        )
+        if account.question_access:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(search_question(event.message.text[16:]))
+            )
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage("Access Denied.")
+            )
 
     else:
         if account:
@@ -510,6 +535,30 @@ def handle_message(event):
                                 TextSendMessage(message)
                             )
                 db.session.commit()
+    if account.id == MY_LINE_ID:
+        if user_message.startswith("/getid "):
+            search_name = event.message.text[7:]
+            accounts = LineAccount.query.filter(LineAccount.name.ilike(f"%{search_name}%"))
+            if accounts:
+                msg_ids = '\n'.join([search_account.id for search_account in accounts])
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(f"ID:\n{msg_ids}")
+                )
+            else:
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage("No account found.")
+                )
+        elif user_message.startswith("/addacc "):
+            requested_account = LineAccount.query.get(event.message.text[8:])
+            requested_account.question_access = True
+            db.session.commit()
+
+        elif user_message.startswith("/removeacc "):
+            requested_account = LineAccount.query.get(event.message.text[11:])
+            requested_account.question_access = False
+            db.session.commit()
 
 
 if __name__ == "__main__":
