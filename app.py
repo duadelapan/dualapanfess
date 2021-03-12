@@ -366,9 +366,9 @@ def handle_message(event):
                 TextSendMessage("Balik mode on")
             )
         db.session.commit()
-    elif user_message.startswith("/addq ") and len(user_message) > len("/addquestion "):
+    elif user_message.startswith("/addq ") and len(user_message) > len("/addq "):
         account.is_add_question = True
-        question = event.message.text[13:]
+        question = event.message.text[6:]
         question_id = add_question(question)
         account.question_id = question_id
         db.session.commit()
@@ -377,7 +377,7 @@ def handle_message(event):
             TextSendMessage(f"Question Added. ID: {question_id}\nAnswer: ")
         )
 
-    elif user_message.startswith("/addans ") and len(user_message) > len("/addquestion "):
+    elif user_message.startswith("/addans ") and len(user_message) > len("/addans "):
         message_list = event.message.text.split(" ")
         question_id = message_list[1]
         try:
@@ -397,7 +397,7 @@ def handle_message(event):
             TextSendMessage(message)
         )
 
-    elif user_message.startswith("/searchq ") and len(user_message) > len("/searchquestion "):
+    elif user_message.startswith("/searchq ") and len(user_message) > len("/searchq "):
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(search_question(event.message.text[16:]))
