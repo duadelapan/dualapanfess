@@ -535,7 +535,7 @@ def handle_message(event):
                                 TextSendMessage(message)
                             )
                 db.session.commit()
-    if account.id == MY_LINE_ID:
+    if account.account_id == MY_LINE_ID:
         if user_message.startswith("/getid "):
             search_name = event.message.text[7:]
             accounts = LineAccount.query.filter(LineAccount.name.ilike(f"%{search_name}%"))
