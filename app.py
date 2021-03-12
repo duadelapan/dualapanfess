@@ -554,11 +554,19 @@ def handle_message(event):
             requested_account = LineAccount.query.get(event.message.text[8:])
             requested_account.question_access = True
             db.session.commit()
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(f"{requested_account.name} added to access")
+            )
 
         elif user_message.startswith("/removeacc "):
             requested_account = LineAccount.query.get(event.message.text[11:])
             requested_account.question_access = False
             db.session.commit()
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(f"{requested_account.name} removed from access")
+            )
 
         elif user_message.startswith("/delq "):
             question_id = user_message[6:]
