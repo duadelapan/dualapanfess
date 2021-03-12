@@ -28,3 +28,9 @@ class TwitterAccount(db.Model):
     last_tweet_req = db.Column(db.String(100))
     next_tweet_msg = db.Column(db.Text)
     tweet_phase = db.Column(db.Text)
+
+
+class Question(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.Text)
+    answer = db.Column(db.Text)

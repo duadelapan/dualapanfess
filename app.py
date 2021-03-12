@@ -16,6 +16,7 @@ from google_search import search_google
 from tables import db, LineAccount, LineGroup
 from twitter_bot import tweet, test_tweet, check_timeout
 from webhook_app import webhook_app
+from question import add_question, add_answer, delete_all, delete_question, get_question_str, search_question
 import os
 import json
 app = Flask(__name__)
@@ -357,6 +358,40 @@ def handle_message(event):
                 TextSendMessage("Balik mode on")
             )
         db.session.commit()
+    elif user_message.startswith("/addquestion ") and len(user_message) > len("/addquestion "):
+        question = event.message.text[13:]
+        question_id = add_question(question)
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(f"Question Added. ID: {question_id}")
+        )
+
+    elif user_message.startswith("/addanswer ") and len(user_message) > len("/addquestion "):
+        message_list = event.message.text.split(" ")
+        question_id = message_list[1]
+        try:
+            int(question_id)
+            answer = " ".join(message_list[2:])
+        except ValueError:
+            message = "error: invalid input"
+        except IndexError:
+            message = "error: invalid input"
+        else:
+            if add_answer(question_id, answer):
+                message = get_question_str(question_id)
+            else:
+                message = "ID invalid"
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(message)
+        )
+
+    elif user_message.startswith("/searchquestion ") and len(user_message) > len("/searchquestion "):
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(search_question(event.message.text[16:]))
+        )
+
     else:
         if account:
             phase = account.tweet_phase
