@@ -365,7 +365,7 @@ def handle_message(event):
     elif re.match("/mirror +[^ ]", user_message_lower):
         trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
                               'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
-        message = user_message.translate(trans)
+        message = re.sub("/mirror +([^ ])", r"\1", user_message, flags=re.IGNORECASE).translate(trans)
         line_bot_api.reply_message(
             reply_token,
             TextSendMessage(message)
