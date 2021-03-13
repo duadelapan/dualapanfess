@@ -87,8 +87,7 @@ def handle_join_event(event):
               "Untuk daftar command, ketik /command\n\n" \
               "28 Menfess Twitter Bot:\n" \
               "Keywords: \n" \
-              "/tweet28fess\n" \
-              "/tweet28fessimg\n\n" \
+              "/tweet28fess\n\n" \
               "Untuk fess tweet, bisa menggunakan command di atas atau chat langsung dengan kata kunci \n" \
               "dupan!\n\n" \
               "FOLLOW\n" \
@@ -125,6 +124,7 @@ def handle_image_message(event):
 def handle_message(event):
     user_message = event.message.text
     user_message_lower = user_message.lower()
+    reply_token = event.reply_token
     account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
 
     if event.source.type == "group":
@@ -156,16 +156,16 @@ def handle_message(event):
         db.session.commit()
         add_answer(account.question_id, user_message)
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(get_question_str(account.question_id))
         )
     elif "dupan!" in user_message_lower:
         account.tweet_phase = "img ask"
-        account.next_tweet_msg = user_message
+        account.next_tweet_msg = util.filter_tweet(user_message)
         account.last_tweet_req = util.datetime_now_string()
         db.session.commit()
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage("Want to attach an image?\n\n"
                             f"/yes {get_emoji_str('0x1000A5')} or /no {get_emoji_str('0x1000A6')}\n"
                             "/canceltweet to cancel ❌",
@@ -178,7 +178,7 @@ def handle_message(event):
     elif user_message_lower == "snmptn":
         day, hour, minute, second = util.get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TemplateSendMessage(
                 alt_text=f"Pengumuman SNMPTN\n"
                          f"🕒{day} hari {hour} jam {minute} menit {second} detik lagi 😲",
@@ -197,7 +197,7 @@ def handle_message(event):
     elif user_message_lower == "sbmptn":
         day, hour, minute, second = util.get_delta_time(2021, 4, 12)
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(text=f"SBMPTN\n"
                                  f"{get_emoji_str('0x100071')}"
                                  f"{day} hari {hour} jam "
@@ -205,7 +205,7 @@ def handle_message(event):
     elif user_message_lower == "ppkb":
         day, hour, minute, second = util.get_delta_time(2021, 3, 26, 13)
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(text=f"PENGUMUMAN PPKB\n"
                                  f"{get_emoji_str('0x100071')}"
                                  f"{day} hari {hour} jam "
@@ -214,19 +214,19 @@ def handle_message(event):
         test = test_tweet()
         if test:
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("success")
             )
         else:
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("fail")
             )
     elif re.match("/youtube +[^ ]", user_message_lower):
         query = re.sub("/youtube +([^ ])", r"\1", user_message, flags=re.IGNORECASE)
         title, url = get_youtube_url(query)
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(text=f"{title}\n{url}")
         )
 
@@ -234,7 +234,7 @@ def handle_message(event):
         response = requests.get('https://meme-api.herokuapp.com/gimme')
         url = response.json()['url']
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             ImageSendMessage(original_content_url=url, preview_image_url=url)
         )
     elif user_message_lower.startswith("/number"):
@@ -257,7 +257,7 @@ def handle_message(event):
                     response = requests.get('http://numbersapi.com/' + str(req) + "/" + res_type)
                     message = response.text
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(text=message)
         )
 
@@ -266,7 +266,7 @@ def handle_message(event):
         data = response.json()
         url = data[0]['url']
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             ImageSendMessage(url, url)
         )
     elif user_message_lower == "/tweet28fess":
@@ -275,7 +275,7 @@ def handle_message(event):
         account.last_tweet_req = util.datetime_now_string()
         db.session.commit()
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(f"from: \n\n/canceltweet to cancel ❌",
                             quick_reply=QuickReply(items=[
                                 QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
@@ -297,7 +297,7 @@ def handle_message(event):
             group.data = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
             group.member_ids = event.source.user_id
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage("Daftar Tumbal" + "\n" + group.data)
         )
         db.session.commit()
@@ -315,7 +315,7 @@ def handle_message(event):
                 else:
                     messages = TextSendMessage("Yang jadi tumbal: " + member.display_name),
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     messages=messages
                 )
                 group.data = ""
@@ -330,19 +330,19 @@ def handle_message(event):
             message += f"{result['title']}\n{result['description']}\n{result['link']}\n\n"
         message = message[:-2]
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(message)
         )
     elif user_message_lower.startswith("/pilih ") and ", " in user_message_lower:
         pilihan = user_message[7:].split(", ")
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(random.choice(pilihan))
         )
     elif user_message_lower.startswith("/kerangajaib "):
         random.seed(user_message_lower)
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(random.choice(["iya", "tidak"]))
         )
         random.seed()
@@ -350,20 +350,20 @@ def handle_message(event):
         message = " ".join("".join(reversed(x)) for x in
                            re.sub("/balik +([^ ])", r"\1", user_message, flags=re.IGNORECASE).split(" "))
         line_bot_api.reply_message(
-            event.reply_token,
+            reply_token,
             TextSendMessage(message)
         )
     elif user_message_lower == "/balik":
         if account.tweet_phase == "balik":
             account.tweet_phase = ""
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("Balik mode off")
             )
         else:
             account.tweet_phase = "balik"
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("Balik mode on")
             )
         db.session.commit()
@@ -374,19 +374,19 @@ def handle_message(event):
             question_id = add_question(question)
             if question_id:
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     TextSendMessage(f"Question Added. ID: {question_id}\nAnswer: ")
                 )
                 account.question_id = question_id
                 db.session.commit()
             else:
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     TextSendMessage(f"Question already exist.\n{search_question(question)}")
                 )
         else:
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("Access Denied.")
             )
 
@@ -400,24 +400,24 @@ def handle_message(event):
             else:
                 message = "ID invalid"
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage(message)
             )
         else:
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("Access Denied.")
             )
 
     elif re.match("/searchq +[^ ]", user_message_lower):
         if account.question_access:
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage(search_question(re.sub("/searchq +([^ ])", r"\1", user_message, flags=re.IGNORECASE)))
             )
         else:
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("Access Denied.")
             )
 
@@ -427,17 +427,14 @@ def handle_message(event):
             if phase and phase == "balik":
                 message = " ".join("".join(reversed(x)) for x in user_message.split(" "))
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     TextSendMessage(message)
                 )
             elif phase:
                 if user_message_lower == "/canceltweet":
-                    account.tweet_phase = ""
-                    account.next_tweet_msg = ""
-                    account.last_tweet_req = ""
-                    account.img_soon = False
+                    util.clear_account_tweet_data(account)
                     line_bot_api.reply_message(
-                        event.reply_token,
+                        reply_token,
                         TextSendMessage("Tweet Cancelled")
                     )
                 else:
@@ -448,7 +445,7 @@ def handle_message(event):
                             account.tweet_phase = "to"
                             account.next_tweet_msg += user_message + "\nto: "
                             line_bot_api.reply_message(
-                                event.reply_token,
+                                reply_token,
                                 TextSendMessage(f"to: \n\n/canceltweet to cancel ❌",
                                                 quick_reply=QuickReply(items=[
                                                     QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
@@ -458,18 +455,18 @@ def handle_message(event):
                             account.tweet_phase = "text"
                             account.next_tweet_msg += user_message + "\n"
                             line_bot_api.reply_message(
-                                event.reply_token,
+                                reply_token,
                                 TextSendMessage(f"message: \n\n/canceltweet to cancel ❌",
                                                 quick_reply=QuickReply(items=[
                                                     QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
                                                 ]))
                             )
                         if phase == "text":
-                            msg = account.next_tweet_msg + user_message
+                            msg = util.filter_tweet(account.next_tweet_msg + user_message)
                             account.tweet_phase = "img ask"
                             account.next_tweet_msg = msg
                             line_bot_api.reply_message(
-                                event.reply_token,
+                                reply_token,
                                 TextSendMessage("Want to attach an image?\n\n"
                                                 f"/yes {get_emoji_str('0x1000A5')} or /no {get_emoji_str('0x1000A6')}\n"
                                                 "/canceltweet to cancel ❌",
@@ -484,7 +481,7 @@ def handle_message(event):
                                 account.img_soon = True
                                 account.tweet_phase = "img"
                                 line_bot_api.reply_message(
-                                    event.reply_token,
+                                    reply_token,
                                     TextSendMessage("Send an image within 5 min.\n\n"
                                                     f"/canceltweet to cancel ❌",
                                                     quick_reply=QuickReply(items=[
@@ -495,7 +492,7 @@ def handle_message(event):
                             elif user_message_lower == "/no":
                                 account.tweet_phase = "confirm"
                                 line_bot_api.reply_message(
-                                    event.reply_token,
+                                    reply_token,
                                     TextSendMessage("❗❗CONFIRMATION❗❗\n\n"
                                                     f"{account.next_tweet_msg}\n\n"
                                                     f"/send to tweet ✉️\n"
@@ -506,27 +503,26 @@ def handle_message(event):
                                                     ]))
                                 )
                         if phase.startswith("confirm") and user_message_lower == "/send":
-                            account.tweet_phase = ""
-                            account.last_tweet_req = ""
                             if account.img_soon:
                                 msg_media_id = phase.split(" ")[-1]
                                 pic = line_bot_api.get_message_content(msg_media_id)
                                 file = io.BytesIO(pic.content)
                                 url = tweet(account.next_tweet_msg, file)
                                 file.close()
-                                account.img_soon = False
                             else:
                                 url = tweet(account.next_tweet_msg)
-                            account.next_tweet_msg = ""
+                            util.clear_account_tweet_data(account)
                             if url.startswith("https"):
                                 account.last_tweet = now
                                 message = f"Tweet Posted.\nurl: {url}"
                             else:
                                 message = url
                             line_bot_api.reply_message(
-                                event.reply_token,
+                                reply_token,
                                 TextSendMessage(message)
                             )
+                    else:
+                        util.clear_account_tweet_data(account)
                 db.session.commit()
 
     if account.account_id == MY_LINE_ID:
@@ -536,12 +532,12 @@ def handle_message(event):
             if accounts:
                 msg_ids = '\n'.join([search_account.account_id for search_account in accounts])
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     TextSendMessage(f"ID:\n{msg_ids}")
                 )
             else:
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     TextSendMessage("No account found.")
                 )
         elif user_message_lower.startswith("/addacc "):
@@ -549,7 +545,7 @@ def handle_message(event):
             requested_account.question_access = True
             db.session.commit()
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage(f"{requested_account.name} added to access")
             )
 
@@ -558,7 +554,7 @@ def handle_message(event):
             requested_account.question_access = False
             db.session.commit()
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage(f"{requested_account.name} removed from access")
             )
 
@@ -566,21 +562,21 @@ def handle_message(event):
             question_id = user_message_lower[6:]
             if question_id.isnumeric():
                 line_bot_api.reply_message(
-                    event.reply_token,
+                    reply_token,
                     TextSendMessage(delete_question(question_id))
                 )
 
         elif user_message_lower == "/delqall":
             delete_all()
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("All Question deleted")
             )
 
         elif user_message_lower == "/allacc":
             all_accounts = LineAccount.query.filter_by(question_access=True).all()
             line_bot_api.reply_message(
-                event.reply_token,
+                reply_token,
                 TextSendMessage("\n".join([acc.name for acc in all_accounts]))
             )
 

@@ -14,7 +14,7 @@ def last_index(iterable, element):
     return len(iterable) - index - 1
 
 
-def clear_tweet(text):
+def filter_tweet(text):
     return re.sub(r"(^|[^\w$@])(@|#)([\w]+)", r"\1\2.\3", text)
 
 

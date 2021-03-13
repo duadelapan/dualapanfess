@@ -112,7 +112,6 @@ def send_confirm_message(user_id, message):
 
 
 def tweet(msg: str, file=None, url=None):
-    msg = util.clear_tweet(msg)
     if len(msg) > 550:
         return f"❗TWEET ERROR❗\n{len(msg)} exceeds the characters limit (550)."
     media = None
@@ -186,10 +185,11 @@ def process_direct_message_event(message_obj: DirectMessage):
 
     if "dupan!" in message_text.lower():
         account.tweet_phase = "confirm"
-        account.next_tweet_msg = message_text
+        msg = util.filter_tweet(message_text)
+        account.next_tweet_msg = msg
         account.last_tweet_req = util.datetime_now_string()
         if message_obj.message_data.media_url:
-            account.next_tweet_msg = message_text[:util.last_index(message_text, " ")]
+            account.next_tweet_msg = msg[:util.last_index(msg, " ")]
             account.img_soon = True
             account.tweet_phase = "confirm " + message_obj.message_data.media_url
         send_confirm_message(userID, account.next_tweet_msg)
@@ -235,11 +235,11 @@ def process_direct_message_event(message_obj: DirectMessage):
                                                f"message: (can attach an image)\n\n/canceltweet to cancel ❌\n"
                                                f"request: {time.time()}", CANCEL_OPTIONS)
                     elif phase == "text":
-                        msg = account.next_tweet_msg + message_text
+                        msg = util.filter_tweet(account.next_tweet_msg + message_text)
                         account.tweet_phase = "confirm"
                         account.next_tweet_msg = msg
                         if message_obj.message_data.media_url:
-                            account.next_tweet_msg = msg[:util.last_index(msg, " ")]
+                            account.next_tweet_msg = util.filter_tweet(msg[:util.last_index(msg, " ")])
                             account.img_soon = True
                             account.tweet_phase = "confirm " + message_obj.message_data.media_url
                         send_confirm_message(userID, account.next_tweet_msg)
