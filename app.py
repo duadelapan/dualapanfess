@@ -346,8 +346,10 @@ def handle_message(event):
             answer = "iya"
         elif random_range <= 0.8:
             answer = "tidak"
-        else:
+        elif random_range <= 0.98:
             answer = "bisa jadi"
+        else:
+            answer = "siapa lu nanya2"
         line_bot_api.reply_message(
             reply_token,
             TextSendMessage(answer)
