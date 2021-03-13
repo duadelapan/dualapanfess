@@ -358,9 +358,14 @@ def handle_message(event):
     elif re.match("/balik +[^ ]", user_message_lower):
         message = " ".join("".join(reversed(x)) for x in
                            re.sub("/balik +([^ ])", r"\1", user_message, flags=re.IGNORECASE).split(" "))
+        line_bot_api.reply_message(
+            reply_token,
+            TextSendMessage(message)
+        )
+    elif re.match("/mirror +[^ ]", user_message_lower):
         trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
                               'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
-        message = message.translate(trans)
+        message = user_message.translate(trans)
         line_bot_api.reply_message(
             reply_token,
             TextSendMessage(message)
@@ -377,6 +382,20 @@ def handle_message(event):
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage("Balik mode on")
+            )
+        db.session.commit()
+    elif user_message_lower == "/mirror":
+        if account.tweet_phase == "mirror":
+            account.tweet_phase = ""
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage("Mirror mode off")
+            )
+        else:
+            account.tweet_phase = "mirror"
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage("Mirror mode on")
             )
         db.session.commit()
     elif re.match("/addq +[^ ]", user_message_lower):
@@ -441,6 +460,14 @@ def handle_message(event):
                 trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
                                       'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
                 message = message.translate(trans)
+                line_bot_api.reply_message(
+                    reply_token,
+                    TextSendMessage(message)
+                )
+            if phase == "mirror":
+                trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                                      'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
+                message = user_message.translate(trans)
                 line_bot_api.reply_message(
                     reply_token,
                     TextSendMessage(message)
