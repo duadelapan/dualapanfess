@@ -341,9 +341,16 @@ def handle_message(event):
         )
     elif user_message_lower.startswith("/kerangajaib "):
         random.seed(user_message_lower)
+        random_range = random.random()
+        if random_range <= 0.4:
+            answer = "iya"
+        elif random_range <= 0.8:
+            answer = "tidak"
+        else:
+            answer = "bisa jadi"
         line_bot_api.reply_message(
             reply_token,
-            TextSendMessage(random.choice(["iya", "tidak"]))
+            TextSendMessage(answer)
         )
         random.seed()
     elif re.match("/balik +[^ ]", user_message_lower):
@@ -392,9 +399,9 @@ def handle_message(event):
 
     elif re.match(r"/addans +[\d]+ +[^ ]", user_message_lower):
         if account.question_access:
-            pattern = re.compile(r"/addans +([\d]+) +([^ ][\s\S]+)", flags=re.IGNORECASE)
-            question_id = pattern.sub(r"\1", user_message)
-            answer = pattern.sub(r"\2", user_message)
+            groups = re.match(r"/addans +([\d]+) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
+            question_id = groups.group(1)
+            answer = groups.group(2)
             if add_answer(question_id, answer):
                 message = get_question_str(question_id)
             else:
