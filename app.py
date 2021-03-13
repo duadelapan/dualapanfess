@@ -358,6 +358,9 @@ def handle_message(event):
     elif re.match("/balik +[^ ]", user_message_lower):
         message = " ".join("".join(reversed(x)) for x in
                            re.sub("/balik +([^ ])", r"\1", user_message, flags=re.IGNORECASE).split(" "))
+        trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                              'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
+        message = message.translate(trans)
         line_bot_api.reply_message(
             reply_token,
             TextSendMessage(message)
@@ -435,6 +438,9 @@ def handle_message(event):
             phase = account.tweet_phase
             if phase and phase == "balik":
                 message = " ".join("".join(reversed(x)) for x in user_message.split(" "))
+                trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                                      'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
+                message = message.translate(trans)
                 line_bot_api.reply_message(
                     reply_token,
                     TextSendMessage(message)
