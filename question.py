@@ -1,5 +1,5 @@
 from tables import db, Question
-
+from sqlalchemy import func
 
 def search_question(keyword):
     look_for = f"%{keyword}%"
@@ -40,6 +40,7 @@ def add_answer(question_id, answer):
 def delete_all():
     for question in Question.query.all():
         db.session.delete(question)
+    db.session.connection().execute("ALTER SEQUENCE question_id_seq RESTART WITH 1;")
     db.session.commit()
 
 
@@ -47,6 +48,12 @@ def delete_question(question_id):
     question = Question.query.get(question_id)
     if question:
         db.session.delete(question)
+        reset_id = db.session.query(func.max(Question.id)).scalar()
+        if reset_id:
+            reset_id += 1
+        else:
+            reset_id = 1
+        db.session.connection().execute(f"ALTER SEQUENCE question_id_seq RESTART WITH {reset_id};")
         db.session.commit()
         return question.question + "\nDeleted."
     return False
