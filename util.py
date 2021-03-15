@@ -37,7 +37,7 @@ def get_delta_time(year, month, day=0, hour=0):
     clock = str(delta).split(", ")[-1]
     hour, minute, second = clock.split(':')
     second = second.split('.')[0]
-    return day, hour, minute, second
+    return int(day), int(hour), int(minute), int(second)
 
 
 def clear_account_tweet_data(account):
