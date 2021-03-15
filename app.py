@@ -177,15 +177,19 @@ def handle_message(event):
         )
     elif user_message_lower == "snmptn":
         day, hour, minute, second = util.get_delta_time(2021, 3, 22, 15)
+        if day*24 + hour < 100:
+            countdown = f"{day*24 + hour} jam {minute} menit {second} detik lagi"
+        else:
+            countdown = f"{day} hari {hour} jam {minute} menit {second} detik lagi."
         line_bot_api.reply_message(
             reply_token,
             TemplateSendMessage(
                 alt_text=f"Pengumuman SNMPTN\n"
-                         f"🕒{day} hari {hour} jam {minute} menit {second} detik lagi 😲",
+                         f"🕒 {countdown} 😲",
                 template=ButtonsTemplate(
                     thumbnail_image_url='https://statik.tempo.co/data/2019/12/01/id_893849/893849_720.jpg',
                     title='Pengumuman SNMPTN',
-                    text=f"{day} hari {hour} jam {minute} menit {second} detik lagi.",
+                    text=f"{countdown}.",
                     actions=[
                         URIAction(
                             label='Live Countdown',
