@@ -444,11 +444,11 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
 
-    elif re.match("/searchq +[^ ]", user_message_lower):
+    elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
         if account.question_access:
             line_bot_api.reply_message(
                 reply_token,
-                TextSendMessage(search_question(re.sub("/searchq +([^ ])", r"\1", user_message, flags=re.IGNORECASE)))
+                TextSendMessage(search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)))
             )
         else:
             line_bot_api.reply_message(
