@@ -17,6 +17,7 @@ def get_question_str(question_id):
     question = Question.query.get(question_id)
     if question:
         return f"ID: {question.id}\n{question.question}\nANS:\n{question.answer}"
+    return "Invalid ID"
 
 
 def add_question(question):
@@ -65,8 +66,12 @@ def delete_question(question_id):
 def get_changed_questions():
     questions = Question.query.filter_by(is_changed=True).all()
     if questions:
-        message = ""
+        message = "CHANGED QUESTIONS\n\n"
         for question in questions:
             message += f"ID: {question.id}\n{question.question}\nANS:\n{question.answer}\n\n"
+        if len(message) > 5000:
+            message = "CHANGED QUESTIONS\n\n"
+            for question in questions:
+                message += f"ID: {question.id}\n"
         return message
     return "No question changed."
