@@ -468,6 +468,21 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
 
+    elif re.match(r"/getq +\d+", user_message_lower):
+        if account.question_access:
+            question_id = re.sub(r"/getq +(\d+)", r"\1", user_message)
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(get_question_str(question_id))
+            )
+        else:
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage("Access Denied.")
+            )
+
+
+
     else:
         if account:
             phase = account.tweet_phase
