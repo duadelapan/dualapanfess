@@ -18,7 +18,8 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSend
 
 import util
 from google_search import search_google
-from question import add_question, add_answer, delete_all, delete_question, get_question_str, search_question
+from question import add_question, add_answer, delete_all, delete_question, get_question_str, search_question, \
+    get_changed_questions
 from tables import db, LineAccount, LineGroup
 from twitter_bot import tweet, test_tweet
 from webhook_app import webhook_app
@@ -430,13 +431,24 @@ def handle_message(event):
             groups = re.match(r"/addans +([\d]+) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             question_id = groups.group(1)
             answer = groups.group(2)
-            if add_answer(question_id, answer):
+            if add_answer(question_id, answer, True):
                 message = get_question_str(question_id)
             else:
                 message = "ID invalid"
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(message)
+            )
+        else:
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage("Access Denied.")
+            )
+    elif user_message_lower == "/soalganti":
+        if account.question_access:
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(get_changed_questions())
             )
         else:
             line_bot_api.reply_message(

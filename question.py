@@ -1,6 +1,7 @@
 from tables import db, Question
 from sqlalchemy import func
 
+
 def search_question(keyword):
     look_for = f"%{keyword}%"
     questions = Question.query.filter(Question.question.ilike(look_for)).all()
@@ -28,10 +29,12 @@ def add_question(question):
     return False
 
 
-def add_answer(question_id, answer):
+def add_answer(question_id, answer, change=False):
     question = Question.query.get(question_id)
     if question:
         question.answer = answer
+        if change:
+            question.is_changed = True
         db.session.commit()
         return True
     return False
@@ -57,3 +60,13 @@ def delete_question(question_id):
         db.session.commit()
         return question.question + "\nDeleted."
     return False
+
+
+def get_changed_questions():
+    questions = Question.query.filter_by(is_changed=True).all()
+    if questions:
+        message = ""
+        for question in questions:
+            message += f"ID: {question.id}\n{question.question}\nANS:\n{question.answer}\n\n"
+        return message
+    return "No question changed."

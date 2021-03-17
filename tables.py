@@ -37,3 +37,4 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text)
     answer = db.Column(db.Text)
+    is_changed = db.Column(db.Boolean, default=False)
