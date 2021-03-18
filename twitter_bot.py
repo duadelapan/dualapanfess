@@ -116,6 +116,7 @@ def tweet(msg: str, file=None, url=None, account=None):
         return f"❗TWEET ERROR❗\n{len(msg)} exceeds the characters limit (550)."
     media = None
     msg2 = None
+    post2 = None
     if len(msg) > 280:
         space_index = util.last_index(msg[:273], " ")
         msg_is_split = False
@@ -150,8 +151,8 @@ def tweet(msg: str, file=None, url=None, account=None):
         return "Tweet failed. Please try again."
     else:
         if account:
-            tweet_post = TweetPost(time=util.datetime_now_string(), text=msg)
-            tweet_post2 = TweetPost(time=util.datetime_now_string(), text=msg2) if msg2 else None
+            tweet_post = TweetPost(id=post.id, time=util.datetime_now_string(), text=msg)
+            tweet_post2 = TweetPost(id=post2.id, time=util.datetime_now_string(), text=msg2) if msg2 else None
             if isinstance(account, LineAccount):
                 tweet_post.sender_line = account
                 db.session.add(tweet_post)
@@ -264,9 +265,9 @@ def process_direct_message_event(message_obj: DirectMessage):
                     elif phase.startswith("confirm") and message_text_lower == "/send":
                         if account.img_soon:
                             msg_media_url = phase.split(" ")[-1]
-                            url = tweet(account.next_tweet_msg, url=msg_media_url)
+                            url = tweet(account.next_tweet_msg, url=msg_media_url, account=account)
                         else:
-                            url = tweet(account.next_tweet_msg)
+                            url = tweet(account.next_tweet_msg, account=account)
                         if url.startswith("https"):
                             account.last_tweet = now
                             message = f"Tweet Posted.{url}"

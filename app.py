@@ -590,10 +590,10 @@ def handle_message(event):
                                 msg_media_id = phase.split(" ")[-1]
                                 pic = line_bot_api.get_message_content(msg_media_id)
                                 file = io.BytesIO(pic.content)
-                                url = tweet(account.next_tweet_msg, file)
+                                url = tweet(account.next_tweet_msg, file, account=account)
                                 file.close()
                             else:
-                                url = tweet(account.next_tweet_msg)
+                                url = tweet(account.next_tweet_msg, account=account)
                             util.clear_account_tweet_data(account)
                             if url.startswith("https"):
                                 account.last_tweet = now
