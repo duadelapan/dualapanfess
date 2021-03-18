@@ -46,11 +46,6 @@ OUR_LINE_IDS = ["Ub2cd3e3460664f1ea60deab2b3863c55", "U1e0fb292fe54671bbcd94841d
                 "U8ae95b8f957d369fcd577d364251bcbd", "U7381dccf5307345132cbed00f17b1fdb",
                 "U0af9092d1a4cd929dc56aae37b36cbe8", "U313668eec8fb12d9b00a7c3c62a55e85",
                 "U0cd7a4e18ae66affcca253ec0e6933a6", "U0cd7a4e18ae66affcca253ec0e6933a6"]
-ACCESS = Access.query.get(1)
-if not ACCESS:
-    ACCESS = Access(accessible=False)
-    db.session.add(ACCESS)
-    db.session.commit()
 
 
 def get_youtube_url(query):
@@ -132,6 +127,7 @@ def handle_image_message(event):
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    ACCESS = Access.query.get(1)
     accessible = ACCESS.accessible
     user_message = event.message.text
     user_message_lower = user_message.lower()
