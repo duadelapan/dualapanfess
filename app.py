@@ -410,7 +410,7 @@ def handle_message(event):
             )
         db.session.commit()
     elif re.match("/addq +[^ ]", user_message_lower):
-        if account.question_access:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
             account.is_add_question = True
             question = re.sub("/addq +([^ ])", r"\1", user_message, flags=re.IGNORECASE)
             question_id = add_question(question)
@@ -433,7 +433,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/addans +[\d]+ +[^ ]", user_message_lower):
-        if account.question_access and accessible:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
             groups = re.match(r"/addans +([\d]+) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             question_id = groups.group(1)
             answer = groups.group(2)
@@ -451,7 +451,7 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
     elif user_message_lower == "/soalganti":
-        if account.question_access and accessible:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(get_changed_questions())
@@ -463,7 +463,7 @@ def handle_message(event):
             )
 
     elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
-        if account.question_access and accessible:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)))
@@ -475,7 +475,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/getq +\d+", user_message_lower):
-        if account.question_access and accessible:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
             question_id = re.sub(r"/getq +(\d+)", r"\1", user_message)
             line_bot_api.reply_message(
                 reply_token,
@@ -487,16 +487,11 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
 
-
-
     else:
         if account:
             phase = account.tweet_phase
             if phase and phase == "balik":
                 message = " ".join("".join(reversed(x)) for x in user_message.split(" "))
-                trans = str.maketrans('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                                      'ɐqɔpǝɟɓɥᴉſʞๅɯuodbɹsʇnʌʍxʎzⱯꓭꓛꓷƎꓞꓨHIſꓘꓶWNOꓒῸꓤSꓕꓵꓥMX⅄Z')
-                message = message.translate(trans)
                 line_bot_api.reply_message(
                     reply_token,
                     TextSendMessage(message)
