@@ -8,7 +8,7 @@ from TwitterAPI import TwitterAPI
 from requests_oauthlib import OAuth1
 
 import util
-from tables import db, TwitterAccount
+from tables import db, TwitterAccount, LineAccount, TweetPost
 
 ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
 ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
@@ -111,7 +111,7 @@ def send_confirm_message(user_id, message):
                            CONFIRM_OPTIONS)
 
 
-def tweet(msg: str, file=None, url=None):
+def tweet(msg: str, file=None, url=None, account=None):
     if len(msg) > 550:
         return f"❗TWEET ERROR❗\n{len(msg)} exceeds the characters limit (550)."
     media = None
@@ -139,15 +139,33 @@ def tweet(msg: str, file=None, url=None):
             post = api.update_status(msg)
         if msg2:
             try:
-                api.update_status(status=msg2, in_reply_to_status_id=post.id)
+                post2 = api.update_status(status=msg2, in_reply_to_status_id=post.id)
             except tweepy.error.TweepError as e:
                 print(e)
                 api.destroy_status(post)
                 return "Tweet failed. Please try again."
-        return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
+
     except tweepy.error.TweepError as e:
         print(e)
         return "Tweet failed. Please try again."
+    else:
+        if account:
+            tweet_post = TweetPost(time=util.datetime_now_string(), text=msg)
+            tweet_post2 = TweetPost(time=util.datetime_now_string(), text=msg2) if msg2 else None
+            if isinstance(account, LineAccount):
+                tweet_post.sender_line = account
+                db.session.add(tweet_post)
+                if tweet_post2:
+                    tweet_post2.sender_line = account
+                    db.session.add(tweet_post2)
+            else:
+                tweet_post.sender_twitter = account
+                db.session.add(tweet_post)
+                if tweet_post2:
+                    tweet_post2.sender_twitter = account
+                    db.session.add(tweet_post2)
+            db.session.commit()
+        return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
 
 
 def dm_quick_reply_options(recipient_id, text, options):
