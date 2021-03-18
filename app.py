@@ -127,8 +127,13 @@ def handle_image_message(event):
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    ACCESS = Access.query.get(1)
-    accessible = ACCESS.accessible
+    access = Access.query.get(1)
+    all_access = Access.query.get(1)
+    if not all_access:
+        all_access = Access()
+        db.session.add(all_access)
+        db.session.commit()
+    accessible = access.accessible
     user_message = event.message.text
     user_message_lower = user_message.lower()
     reply_token = event.reply_token
@@ -451,7 +456,7 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
     elif user_message_lower == "/soalganti":
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(get_changed_questions())
@@ -463,7 +468,7 @@ def handle_message(event):
             )
 
     elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)))
@@ -475,7 +480,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/getq +\d+", user_message_lower):
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
+        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
             question_id = re.sub(r"/getq +(\d+)", r"\1", user_message)
             line_bot_api.reply_message(
                 reply_token,
@@ -654,8 +659,17 @@ def handle_message(event):
                 TextSendMessage("\n".join([acc.name for acc in all_accounts]))
             )
         elif user_message_lower == "/qaccess":
-            ACCESS.accessible = not ACCESS.accessible
-            message = "All access enabled" if ACCESS.accessible else "All access disabled"
+            access.accessible = not access.accessible
+            message = "All access enabled" if access.accessible else "All access disabled"
+            db.session.commit()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(message)
+            )
+
+        elif user_message_lower == "/qallaccess":
+            all_access.accessible = not all_access.accessible
+            message = "All access for everyone enabled" if access.accessible else "All access for everyone disabled"
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
