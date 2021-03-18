@@ -20,7 +20,7 @@ import util
 from google_search import search_google
 from question import add_question, add_answer, delete_all, delete_question, get_question_str, search_question, \
     get_changed_questions
-from tables import db, LineAccount, LineGroup
+from tables import db, LineAccount, LineGroup, Access
 from twitter_bot import tweet, test_tweet
 from webhook_app import webhook_app
 
@@ -42,6 +42,15 @@ line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 MY_LINE_ID = "Ub2cd3e3460664f1ea60deab2b3863c55"
+OUR_LINE_IDS = ["Ub2cd3e3460664f1ea60deab2b3863c55", "U1e0fb292fe54671bbcd94841d47b5efb",
+                "U8ae95b8f957d369fcd577d364251bcbd", "U7381dccf5307345132cbed00f17b1fdb",
+                "U0af9092d1a4cd929dc56aae37b36cbe8", "U313668eec8fb12d9b00a7c3c62a55e85",
+                "U0cd7a4e18ae66affcca253ec0e6933a6", "U0cd7a4e18ae66affcca253ec0e6933a6"]
+ACCESS = Access.query.get(1)
+if not ACCESS:
+    ACCESS = Access(accessible=False)
+    db.session.add(ACCESS)
+    db.session.commit()
 
 
 def get_youtube_url(query):
@@ -123,6 +132,7 @@ def handle_image_message(event):
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    accessible = ACCESS.accessible
     user_message = event.message.text
     user_message_lower = user_message.lower()
     reply_token = event.reply_token
@@ -427,7 +437,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/addans +[\d]+ +[^ ]", user_message_lower):
-        if account.question_access:
+        if account.question_access and accessible:
             groups = re.match(r"/addans +([\d]+) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             question_id = groups.group(1)
             answer = groups.group(2)
@@ -445,7 +455,7 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
     elif user_message_lower == "/soalganti":
-        if account.question_access:
+        if account.question_access and accessible:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(get_changed_questions())
@@ -457,7 +467,7 @@ def handle_message(event):
             )
 
     elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
-        if account.question_access:
+        if account.question_access and accessible:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)))
@@ -469,7 +479,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/getq +\d+", user_message_lower):
-        if account.question_access:
+        if account.question_access and accessible:
             question_id = re.sub(r"/getq +(\d+)", r"\1", user_message)
             line_bot_api.reply_message(
                 reply_token,
@@ -651,6 +661,14 @@ def handle_message(event):
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage("\n".join([acc.name for acc in all_accounts]))
+            )
+        elif user_message_lower == "/qaccess":
+            ACCESS.accessible = not ACCESS.accessible
+            message = "All access enabled" if ACCESS.accessible else "All access disabled"
+            db.session.commit()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(message)
             )
 
 
