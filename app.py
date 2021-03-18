@@ -470,9 +470,12 @@ def handle_message(event):
 
     elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
         if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
+            message = search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE))
+            if len(message) > 5000:
+                message = "Too many results."
             line_bot_api.reply_message(
                 reply_token,
-                TextSendMessage(search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)))
+                TextSendMessage(message)
             )
         else:
             line_bot_api.reply_message(
