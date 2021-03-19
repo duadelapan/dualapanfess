@@ -81,22 +81,26 @@ def callback():
 @handler.add(JoinEvent)
 def handle_join_event(event):
     if event.source.type == "group":
-        name = line_bot_api.get_group_summary(event.source.group_id).group_name
+        line_bot_api.leave_group(event.source.group_id)
     else:
-        name = ""
-    message = f"Halo {name}!\n\n" \
-              "Untuk daftar command, ketik /command\n\n" \
-              "28 Menfess Twitter Bot:\n" \
-              "Keywords: \n" \
-              "/tweet28fess\n\n" \
-              "Untuk fess tweet, bisa menggunakan command di atas atau chat langsung dengan kata kunci \n" \
-              "dupan!\n\n" \
-              "FOLLOW\n" \
-              "https://twitter.com/28FESS?s=20"
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(message)
-    )
+        line_bot_api.leave_room(event.source.room_id)
+    # if event.source.type == "group":
+    #     name = line_bot_api.get_group_summary(event.source.group_id).group_name
+    # else:
+    #     name = ""
+    # message = f"Halo {name}!\n\n" \
+    #           "Untuk daftar command, ketik /command\n\n" \
+    #           "28 Menfess Twitter Bot:\n" \
+    #           "Keywords: \n" \
+    #           "/tweet28fess\n\n" \
+    #           "Untuk fess tweet, bisa menggunakan command di atas atau chat langsung dengan kata kunci \n" \
+    #           "dupan!\n\n" \
+    #           "FOLLOW\n" \
+    #           "https://twitter.com/28FESS?s=20"
+    # line_bot_api.reply_message(
+    #     event.reply_token,
+    #     TextSendMessage(message)
+    # )
 
 
 @handler.add(MessageEvent, message=ImageMessage)
