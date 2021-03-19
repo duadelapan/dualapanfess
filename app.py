@@ -624,22 +624,40 @@ def handle_message(event):
                     reply_token,
                     TextSendMessage("No account found.")
                 )
-        elif user_message_lower.startswith("/addacc "):
+        elif user_message_lower.startswith("/addacca "):
             requested_account = LineAccount.query.get(user_message[8:])
-            requested_account.question_access = True
+            requested_account.ipa_access = True
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
-                TextSendMessage(f"{requested_account.name} added to access")
+                TextSendMessage(f"{requested_account.name} added to MIPA access")
             )
 
-        elif user_message_lower.startswith("/removeacc "):
+        elif user_message_lower.startswith("/addaccs "):
+            requested_account = LineAccount.query.get(user_message[8:])
+            requested_account.ips_access = True
+            db.session.commit()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(f"{requested_account.name} added to IPS access")
+            )
+
+        elif user_message_lower.startswith("/removeacca "):
             requested_account = LineAccount.query.get(user_message[11:])
             requested_account.question_access = False
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
-                TextSendMessage(f"{requested_account.name} removed from access")
+                TextSendMessage(f"{requested_account.name} removed from MIPA access")
+            )
+
+        elif user_message_lower.startswith("/removeacca "):
+            requested_account = LineAccount.query.get(user_message[11:])
+            requested_account.question_access = False
+            db.session.commit()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(f"{requested_account.name} removed from IPS access")
             )
 
         elif user_message_lower.startswith("/delq "):
@@ -675,6 +693,14 @@ def handle_message(event):
         elif user_message_lower == "/qallaccess":
             all_access.accessible = not all_access.accessible
             message = "All access for everyone enabled" if access.accessible else "All access for everyone disabled"
+            db.session.commit()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(message)
+            )
+        elif user_message_lower == "/ipamode":
+            lagi_pelajaran_ipa.accessible = not lagi_pelajaran_ipa.accessible
+            message = "MIPA enabled" if lagi_pelajaran_ipa.accessible else "MIPA disabled"
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
