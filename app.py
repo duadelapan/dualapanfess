@@ -629,7 +629,7 @@ def handle_message(event):
                     TextSendMessage("No account found.")
                 )
         elif user_message_lower.startswith("/addacca "):
-            requested_account = LineAccount.query.get(user_message[8:])
+            requested_account = LineAccount.query.get(user_message[9:])
             requested_account.ipa_access = True
             db.session.commit()
             line_bot_api.reply_message(
@@ -638,7 +638,7 @@ def handle_message(event):
             )
 
         elif user_message_lower.startswith("/addaccs "):
-            requested_account = LineAccount.query.get(user_message[8:])
+            requested_account = LineAccount.query.get(user_message[9:])
             requested_account.ips_access = True
             db.session.commit()
             line_bot_api.reply_message(
