@@ -36,16 +36,12 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
-ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
-CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
+# ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
+# CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
 line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 MY_LINE_ID = "Ub2cd3e3460664f1ea60deab2b3863c55"
-OUR_LINE_IDS = ["Ub2cd3e3460664f1ea60deab2b3863c55", "U1e0fb292fe54671bbcd94841d47b5efb",
-                "U8ae95b8f957d369fcd577d364251bcbd", "U7381dccf5307345132cbed00f17b1fdb",
-                "U0af9092d1a4cd929dc56aae37b36cbe8", "U313668eec8fb12d9b00a7c3c62a55e85",
-                "U0cd7a4e18ae66affcca253ec0e6933a6", "U0cd7a4e18ae66affcca253ec0e6933a6"]
 
 
 def get_youtube_url(query):
@@ -128,11 +124,8 @@ def handle_image_message(event):
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     access = Access.query.get(1)
-    all_access = Access.query.get(1)
-    if not all_access:
-        all_access = Access()
-        db.session.add(all_access)
-        db.session.commit()
+    all_access = Access.query.get(2)
+    lagi_pelajaran_ipa = Access.query.get(3)
     accessible = access.accessible
     user_message = event.message.text
     user_message_lower = user_message.lower()
@@ -415,11 +408,18 @@ def handle_message(event):
                 TextSendMessage("Mirror mode on")
             )
         db.session.commit()
-    elif re.match("/addq +[^ ]", user_message_lower):
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
+    elif re.match("(/addq|/addqa|/addqs) +[^ ]", user_message_lower):
+        if (account.question_access and accessible) or account.is_superuser:
             account.is_add_question = True
-            question = re.sub("/addq +([^ ])", r"\1", user_message, flags=re.IGNORECASE)
-            question_id = add_question(question)
+            groups = re.match(r"(/addq|/addqa|/addqs) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
+            query = groups.group(1).lower()
+            is_ipa = query == "/addqa" or lagi_pelajaran_ipa.accessible
+            is_ips = query == "/addqs"
+            if not is_ipa and not is_ips:
+                is_ipa = True
+                is_ips = True
+            question = groups.group(2)
+            question_id = add_question(question, is_ipa, is_ips)
             if question_id:
                 line_bot_api.reply_message(
                     reply_token,
@@ -439,7 +439,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/addans +[\d]+ +[^ ]", user_message_lower):
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser:
             groups = re.match(r"/addans +([\d]+) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             question_id = groups.group(1)
             answer = groups.group(2)
@@ -457,10 +457,10 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
     elif user_message_lower == "/soalganti":
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible:
             line_bot_api.reply_message(
                 reply_token,
-                TextSendMessage(get_changed_questions())
+                TextSendMessage(get_changed_questions(account.ipa_access, account.ips_access, account.is_superuser))
             )
         else:
             line_bot_api.reply_message(
@@ -469,8 +469,9 @@ def handle_message(event):
             )
 
     elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
-            message = search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE))
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible:
+            message = search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)
+                                      , account.ipa_access, account.ips_access, account.is_superuser)
             if len(message) > 5000:
                 message = "Too many results."
             line_bot_api.reply_message(
@@ -484,7 +485,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/getq +\d+", user_message_lower):
-        if (account.question_access and accessible) or account.account_id in OUR_LINE_IDS or all_access.accessible:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible:
             question_id = re.sub(r"/getq +(\d+)", r"\1", user_message)
             line_bot_api.reply_message(
                 reply_token,
