@@ -413,7 +413,7 @@ def handle_message(event):
             )
         db.session.commit()
     elif re.match("(/addq|/addqa|/addqs) +[^ ]", user_message_lower):
-        if (account.question_access and accessible) or account.is_superuser:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser:
             account.is_add_question = True
             groups = re.match(r"(/addq|/addqa|/addqs) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             query = groups.group(1).lower()
