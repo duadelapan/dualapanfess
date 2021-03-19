@@ -648,16 +648,16 @@ def handle_message(event):
 
         elif user_message_lower.startswith("/removeacca "):
             requested_account = LineAccount.query.get(user_message[12:])
-            requested_account.question_access = False
+            requested_account.ipa_access = False
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(f"{requested_account.name} removed from MIPA access")
             )
 
-        elif user_message_lower.startswith("/removeacca "):
+        elif user_message_lower.startswith("/removeaccs "):
             requested_account = LineAccount.query.get(user_message[12:])
-            requested_account.question_access = False
+            requested_account.ips_access = False
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
