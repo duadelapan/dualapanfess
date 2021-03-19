@@ -2,12 +2,9 @@ from tables import db, Question
 from sqlalchemy import func
 
 
-def search_question(keyword, ipa=False, ips=False, superuser=False):
+def search_question(keyword):
     look_for = f"%{keyword}%"
-    if not superuser:
-        questions = Question.query.filter(Question.question.ilike(look_for)).filter_by(q_ipa=ipa, q_ips=ips).all()
-    else:
-        questions = Question.query.filter(Question.question.ilike(look_for)).all()
+    questions = Question.query.filter(Question.question.ilike(look_for)).all()
     if questions:
         message = ""
         for question in questions:
@@ -23,12 +20,10 @@ def get_question_str(question_id):
     return "Invalid ID"
 
 
-def add_question(question, ipa=False, ips=False):
+def add_question(question):
     questions = Question.query.filter(Question.question.ilike(f"%{question}%")).first()
     if not questions:
         new_question = Question(question=question)
-        new_question.q_ipa = ipa
-        new_question.q_ips = ips
         db.session.add(new_question)
         db.session.commit()
         return new_question.id
@@ -68,11 +63,8 @@ def delete_question(question_id):
     return False
 
 
-def get_changed_questions(ipa=False, ips=False, superuser=False):
-    if not superuser:
-        questions = Question.query.filter_by(is_changed=True, q_ipa=ipa, q_ips=ips).all()
-    else:
-        questions = Question.query.filter_by(is_changed=True).all()
+def get_changed_questions():
+    questions = Question.query.filter_by(is_changed=True).all()
     if questions:
         message = "CHANGED QUESTIONS\n\n"
         for question in questions:

@@ -15,9 +15,7 @@ class LineAccount(db.Model):
     tweet_phase = db.Column(db.String(50))
     is_add_question = db.Column(db.Boolean, default=False)
     question_id = db.Column(db.Integer)
-    ipa_access = db.Column(db.Boolean, default=False)
-    ips_access = db.Column(db.Boolean, default=False)
-    is_superuser = db.Column(db.Boolean, default=False)
+    question_access = db.Column(db.Boolean, default=False)
 
 
 class LineGroup(db.Model):
@@ -43,8 +41,6 @@ class Question(db.Model):
     question = db.Column(db.Text)
     answer = db.Column(db.Text)
     is_changed = db.Column(db.Boolean, default=False)
-    q_ipa = db.Column(db.Boolean, default=False)
-    q_ips = db.Column(db.Boolean, default=False)
 
 
 class Access(db.Model):
