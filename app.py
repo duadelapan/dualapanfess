@@ -434,7 +434,7 @@ def handle_message(event):
             else:
                 line_bot_api.reply_message(
                     reply_token,
-                    TextSendMessage(f"Question already exist.\n{search_question(question)}")
+                    TextSendMessage(f"Question already exist.\n{search_question(question, is_ipa, is_ips)}")
                 )
         else:
             line_bot_api.reply_message(
