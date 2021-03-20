@@ -5,7 +5,10 @@ from sqlalchemy import func
 def search_question(keyword, ipa=False, ips=False, superuser=False):
     look_for = f"%{keyword}%"
     if not superuser:
-        questions = Question.query.filter(Question.question.ilike(look_for)).filter_by(q_ipa=ipa, q_ips=ips).all()
+        if ipa:
+            questions = Question.query.filter(Question.question.ilike(look_for)).filter_by(q_ipa=ipa).all()
+        else:
+            questions = Question.query.filter(Question.question.ilike(look_for)).filter_by(q_ips=ips).all()
     else:
         questions = Question.query.filter(Question.question.ilike(look_for)).all()
     if questions:
