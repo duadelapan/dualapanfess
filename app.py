@@ -417,11 +417,12 @@ def handle_message(event):
             account.is_add_question = True
             groups = re.match(r"(/addq|/addqa|/addqs) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             query = groups.group(1).lower()
-            is_ipa = query == "/addqa" or lagi_pelajaran_ipa.accessible
+            is_ipa = query == "/addqa"
             is_ips = query == "/addqs"
             if not is_ipa and not is_ips:
                 is_ipa = True
-                is_ips = True
+                if not lagi_pelajaran_ipa.accessible:
+                    is_ips = True
             question = groups.group(2)
             question_id = add_question(question, is_ipa, is_ips)
             if question_id:
