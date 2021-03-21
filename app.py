@@ -15,6 +15,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
     ButtonsTemplate, URIAction, ImageMessage, QuickReply, QuickReplyButton, MessageAction, JoinEvent
+from sqlalchemy import or_
 
 import util
 from google_search import search_google
@@ -681,11 +682,26 @@ def handle_message(event):
             )
 
         elif user_message_lower == "/allacc":
-            all_accounts = LineAccount.query.filter_by(question_access=True).all()
+            all_accounts = LineAccount.query.filter(or_(LineAccount.ipa_access, LineAccount.ips_access)).all()
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage("\n".join([acc.name for acc in all_accounts]))
             )
+
+        elif user_message_lower == "/allacca":
+            all_accounts = LineAccount.query.filter(LineAccount.ipa_access).all()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage("\n".join([acc.name for acc in all_accounts]))
+            )
+
+        elif user_message_lower == "/allaccs":
+            all_accounts = LineAccount.query.filter(LineAccount.ips_access).all()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage("\n".join([acc.name for acc in all_accounts]))
+            )
+
         elif user_message_lower == "/qaccess":
             access.accessible = not access.accessible
             message = "All access enabled" if access.accessible else "All access disabled"
@@ -697,7 +713,7 @@ def handle_message(event):
 
         elif user_message_lower == "/qallaccess":
             all_access.accessible = not all_access.accessible
-            message = "All access for everyone enabled" if access.accessible else "All access for everyone disabled"
+            message = "All access for everyone enabled" if all_access.accessible else "All access for everyone disabled"
             db.session.commit()
             line_bot_api.reply_message(
                 reply_token,
