@@ -73,7 +73,10 @@ def delete_question(question_id):
 
 def get_changed_questions(ipa=False, ips=False, superuser=False):
     if not superuser:
-        questions = Question.query.filter_by(is_changed=True, q_ipa=ipa, q_ips=ips).all()
+        if ipa:
+            questions = Question.query.filter_by(is_changed=True, q_ipa=ipa).all()
+        else:
+            questions = Question.query.filter_by(is_changed=True, q_ips=ips).all()
     else:
         questions = Question.query.filter_by(is_changed=True).all()
     if questions:
