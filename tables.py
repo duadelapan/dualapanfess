@@ -18,6 +18,7 @@ class LineAccount(db.Model):
     ipa_access = db.Column(db.Boolean, default=False)
     ips_access = db.Column(db.Boolean, default=False)
     is_superuser = db.Column(db.Boolean, default=False)
+    is_adder = db.Column(db.Boolean, default=False)
 
 
 class LineGroup(db.Model):

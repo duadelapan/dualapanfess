@@ -414,7 +414,7 @@ def handle_message(event):
             )
         db.session.commit()
     elif re.match("(/addq|/addqa|/addqs) +[^ ]", user_message_lower):
-        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or account.is_adder:
             account.is_add_question = True
             groups = re.match(r"(/addq|/addqa|/addqs) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             query = groups.group(1).lower()
@@ -445,7 +445,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/addans +[\d]+ +[^ ]", user_message_lower):
-        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or account.is_adder:
             groups = re.match(r"/addans +([\d]+) +([^ ][\s\S]+)", user_message, flags=re.IGNORECASE)
             question_id = groups.group(1)
             answer = groups.group(2)
@@ -463,7 +463,7 @@ def handle_message(event):
                 TextSendMessage("Access Denied.")
             )
     elif user_message_lower == "/soalganti":
-        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible or account.is_adder:
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(get_changed_questions(account.ipa_access, account.ips_access, account.is_superuser))
@@ -475,7 +475,7 @@ def handle_message(event):
             )
 
     elif re.match("(/searchq|/sq) +[^ ]", user_message_lower):
-        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible or account.is_adder:
             message = search_question(re.sub("(/searchq|/sq) +([^ ])", r"\2", user_message, flags=re.IGNORECASE)
                                       , account.ipa_access, account.ips_access, account.is_superuser)
             if len(message) > 5000:
@@ -491,7 +491,7 @@ def handle_message(event):
             )
 
     elif re.match(r"/getq +\d+", user_message_lower):
-        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible:
+        if ((account.ipa_access or account.ips_access) and accessible) or account.is_superuser or all_access.accessible or account.is_adder:
             question_id = re.sub(r"/getq +(\d+)", r"\1", user_message)
             line_bot_api.reply_message(
                 reply_token,
