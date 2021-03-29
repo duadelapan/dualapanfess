@@ -144,11 +144,11 @@ def handle_message(event):
             group.name = line_bot_api.get_group_summary(group.id).group_name
             db.session.add(group)
             db.session.commit()
-        if account.tic_tac_toe.is_playing or user_message_lower == "/tictactoe":
+        if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
             if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
                 return
     elif event.source.type == "room":
-        if account.tic_tac_toe.is_playing or user_message_lower == "tictactoe":
+        if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "tictactoe":
             if tictactoe.play(event.souce.room_id, account, user_message, reply_token, line_bot_api):
                 return
 
