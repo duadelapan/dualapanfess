@@ -144,7 +144,7 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                 return True
 
     if board.status == 0:
-        if tic_tac_toe.players.index(player) == board.turn - 1:
+        if tic_tac_toe.players.index(player) == board.turn - 1 and len(tic_tac_toe.players) == 2:
             if board.write(message):
                 board.status = board.check_stat()
             else:
