@@ -118,6 +118,9 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
             tic_tac_toe.is_playing = False
             tic_tac_toe.players.clear()
             db.session.commit()
+            line_bot_api.reply_message(reply_token,
+                                       TextSendMessage("TicTacToe Exited."))
+            return True
         elif not tic_tac_toe.is_playing:
             tic_tac_toe.is_playing = True
             tic_tac_toe.players.append(player)
