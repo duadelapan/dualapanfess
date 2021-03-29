@@ -22,7 +22,10 @@ class Board:
         self.status = 0
 
     def write(self, point):
-        point = int(point)
+        try:
+            point = int(point)
+        except ValueError:
+            return False
         if not 0 < point < 10:
             return False
         x = (point + 2) % 3
