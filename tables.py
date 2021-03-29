@@ -70,5 +70,6 @@ class TicTacToe(db.Model):
     board = db.Column(db.LargeBinary)
     is_playing = db.Column(db.Boolean, default=True)
     players = relationship("LineAccount", back_populates="tic_tac_toe")
+    first_player = db.Column(db.String(50))
 
 

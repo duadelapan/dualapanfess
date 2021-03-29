@@ -2,7 +2,7 @@ import math
 import pickle
 from linebot import LineBotApi
 from linebot.models import TextSendMessage
-
+import random
 from tables import db, TicTacToe
 
 
@@ -136,6 +136,7 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
             if player not in tic_tac_toe.players:
                 if len(tic_tac_toe.players) < 2:
                     tic_tac_toe.players.append(player)
+                    tic_tac_toe.first_player = random.choice(tic_tac_toe.players).account_id
                     player.name = line_bot_api.get_profile(player.account_id).display_name
                     db.session.commit()
                     line_bot_api.reply_message(reply_token,
@@ -147,7 +148,8 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                 return True
 
     if board.status == 0:
-        if tic_tac_toe.players.index(player) == board.turn - 1 and len(tic_tac_toe.players) == 2:
+        if (player.account_id == tic_tac_toe.first_player and board.turn == 1) \
+                or (player.account_id != tic_tac_toe.first_player and board.turn == 2) and len(tic_tac_toe.players) == 2:
             if board.write(message):
                 board.status = board.check_stat()
             else:
