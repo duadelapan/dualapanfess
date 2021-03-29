@@ -168,6 +168,8 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                 line_bot_api.reply_message(reply_token,
                                            TextSendMessage(board.get_board_str() +
                                                            f"\n{tic_tac_toe.players[board.turn-1].name} TURN"))
+                tic_tac_toe.board = pickle.dumps(board)
+                db.session.commit()
             return True
         else:
             return False
