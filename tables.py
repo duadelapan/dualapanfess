@@ -19,6 +19,8 @@ class LineAccount(db.Model):
     ips_access = db.Column(db.Boolean, default=False)
     is_superuser = db.Column(db.Boolean, default=False)
     is_adder = db.Column(db.Boolean, default=False)
+    tic_tac_toe_id = db.Column(db.String(50), db.ForeignKey("tic_tac_toe.id"))
+    tic_tac_toe = relationship("TicTacToe", back_populates="players")
 
 
 class LineGroup(db.Model):
@@ -61,5 +63,12 @@ class TweetPost(db.Model):
     sender_twitter = relationship("TwitterAccount", back_populates="tweets")
     time = db.Column(db.String(100))
     text = db.Column(db.Text)
+
+
+class TicTacToe(db.Model):
+    id = db.Column(db.String(50), primary_key=True)
+    board = db.Column(db.LargeBinary)
+    is_playing = db.Column(db.Boolean, default=True)
+    players = relationship("LineAccount", back_populates="tic_tac_toe")
 
 

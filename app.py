@@ -16,7 +16,7 @@ from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
     ButtonsTemplate, URIAction, ImageMessage, QuickReply, QuickReplyButton, MessageAction, JoinEvent
 from sqlalchemy import or_
-
+import tictactoe
 import util
 from google_search import search_google
 from question import add_question, add_answer, delete_all, delete_question, get_question_str, search_question, \
@@ -144,6 +144,13 @@ def handle_message(event):
             group.name = line_bot_api.get_group_summary(group.id).group_name
             db.session.add(group)
             db.session.commit()
+        if account.tic_tac_toe.is_playing or user_message_lower == "/tictactoe":
+            if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
+                return
+    elif event.source.type == "room":
+        if account.tic_tac_toe.is_playing or user_message_lower == "tictactoe":
+            if tictactoe.play(event.souce.room_id, account, user_message, reply_token, line_bot_api):
+                return
 
     if not account:
         account = LineAccount(account_id=event.source.user_id)
