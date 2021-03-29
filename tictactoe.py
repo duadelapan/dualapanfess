@@ -9,7 +9,7 @@ from tables import db, TicTacToe
 class Board:
     META_DICT = {
         2: "O",
-        0: " ",
+        0: "  ",
         1: "X"
     }
 
@@ -102,7 +102,6 @@ class Board:
 
 def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
     tic_tac_toe = TicTacToe.query.get(room_id)
-    print("1")
     if not tic_tac_toe:
         tic_tac_toe = TicTacToe(id=room_id)
         tic_tac_toe.players.append(player)
@@ -110,14 +109,16 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
         board = Board()
         tic_tac_toe.board = pickle.dumps(board)
         db.session.add(tic_tac_toe)
-        print("added")
         db.session.commit()
         line_bot_api.reply_message(reply_token,
                                    TextSendMessage("1 more player, /tictactoe to join."))
         return True
     else:
-        print("2")
-        if not tic_tac_toe.is_playing:
+        if message.lower() == "/exit":
+            tic_tac_toe.is_playing = False
+            tic_tac_toe.players.clear()
+            db.session.commit()
+        elif not tic_tac_toe.is_playing:
             tic_tac_toe.is_playing = True
             tic_tac_toe.players.append(player)
             player.name = line_bot_api.get_profile(player.account_id).display_name
@@ -143,7 +144,6 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                 return True
 
     if board.status == 0:
-        print(tic_tac_toe.players)
         if tic_tac_toe.players.index(player) == board.turn - 1:
             if board.write(message):
                 board.status = board.check_stat()
