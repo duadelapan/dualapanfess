@@ -99,6 +99,7 @@ class Board:
 
 def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
     tic_tac_toe = TicTacToe.query.get(room_id)
+    print("1")
     if not tic_tac_toe:
         tic_tac_toe = TicTacToe(id=room_id)
         tic_tac_toe.players.append(player)
@@ -106,11 +107,13 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
         board = Board()
         tic_tac_toe.board = pickle.dumps(board)
         db.session.add(tic_tac_toe)
+        print("added")
         db.session.commit()
         line_bot_api.reply_message(reply_token,
                                    TextSendMessage("1 more player, /tictactoe to join."))
         return True
     else:
+        print("2")
         if not tic_tac_toe.is_playing:
             tic_tac_toe.is_playing = True
             tic_tac_toe.players.append(player)
