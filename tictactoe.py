@@ -127,7 +127,7 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
         else:
             board = pickle.loads(tic_tac_toe.board)
             if player not in tic_tac_toe.players:
-                if len(tic_tac_toe) < 2:
+                if len(tic_tac_toe.players) < 2:
                     tic_tac_toe.players.append(player)
                     player.name = line_bot_api.get_profile(player.account_id).display_name
                     db.session.commit()
