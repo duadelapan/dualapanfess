@@ -166,8 +166,8 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                 db.session.commit()
             else:
                 line_bot_api.reply_message(reply_token,
-                                           TextSendMessage(board.get_board_str()) +
-                                           f"\n{tic_tac_toe.players[board.turn-1].name} TURN")
+                                           TextSendMessage(board.get_board_str() +
+                                                           f"\n{tic_tac_toe.players[board.turn-1].name} TURN"))
             return True
         else:
             return False
