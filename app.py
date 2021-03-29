@@ -136,7 +136,7 @@ def handle_message(event):
     user_message_lower = user_message.lower()
     reply_token = event.reply_token
     account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
-
+    print(event.source.type)
     if event.source.type == "group":
         group = LineGroup.query.get(event.source.group_id)
         if not group:
