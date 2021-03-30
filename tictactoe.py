@@ -10,14 +10,23 @@ class Board:
     META_DICT = {
         2: "O",
         0: "  ",
-        1: "X"
+        1: "X",
+        -1: "1",
+        -2: "2",
+        -3: "3",
+        -4: "4",
+        -5: "5",
+        -6: "6",
+        -7: "7",
+        -8: "8",
+        -9: "9"
     }
 
     def __init__(self):
         self.board = [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0]]
+            [-1, -2, -3],
+            [-4, -5, -6],
+            [-7, -8, -9]]
         self.turn = 1
         self.status = 0
 
@@ -30,7 +39,7 @@ class Board:
             return False
         x = (point + 2) % 3
         y = math.ceil(point / 3) - 1
-        if 0 <= x < 3 and 0 <= y < 3 and self.board[y][x] == 0:
+        if 0 <= x < 3 and 0 <= y < 3 and self.board[y][x] < 0:
             self.board[y][x] = self.turn
             if self.turn == 1:
                 self.turn = 2
@@ -71,7 +80,7 @@ class Board:
                         is_x_cross2 = False
                     if is_o_cross2 and horizontal_value != 2:
                         is_o_cross2 = False
-                if vertical_value == 0:
+                if vertical_value < 0:
                     is_draw = False
             if is_x_hor or is_x_ver:
                 return 1
@@ -87,9 +96,9 @@ class Board:
 
     def reset(self):
         self.board = [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0]]
+            [-1, -2, -3],
+            [-4, -5, -6],
+            [-7, -8, -9]]
         self.turn = 1
         self.status = 0
 
