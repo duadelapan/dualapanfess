@@ -3,7 +3,7 @@ import pickle
 from linebot import LineBotApi
 from linebot.models import TextSendMessage
 import random
-from tables import db, TicTacToe
+from tables import db, TicTacToe, LineAccount
 
 
 class Board:
@@ -97,10 +97,17 @@ class Board:
         res = []
         for row in self.board:
             res.append(" " + " | ".join(self.META_DICT[x] for x in row))
-        return "\n".join(res)
+        return "\n------------\n".join(res)
 
 
 def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
+    def get_player_name(next_turn=True):
+        if (board.turn == 1 and next_turn) or (board.turn == 2 and not next_turn):
+            return LineAccount.query.get(tic_tac_toe.first_player).name
+        for account in tic_tac_toe.players:
+            if account.account_id != tic_tac_toe.first_player:
+                return account.name
+
     tic_tac_toe = TicTacToe.query.get(room_id)
     if not tic_tac_toe:
         tic_tac_toe = TicTacToe(id=room_id)
@@ -141,7 +148,9 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                     db.session.commit()
                     line_bot_api.reply_message(reply_token,
                                                TextSendMessage(board.get_board_str() +
-                                                               f"\n{tic_tac_toe.players[board.turn-1].name} TURN"))
+                                                               f"\n{get_player_name()} TURN\n"
+                                                               f"Type 1-9\n"
+                                                               f"/exit to end the game."))
                 else:
                     line_bot_api.reply_message(reply_token,
                                                TextSendMessage("There is currently game playing."))
@@ -157,12 +166,10 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
                                            TextSendMessage("Wrong input."))
                 return True
             if board.status != 0:
-                if board.status == 1:
+                if board.status == 1 or board.status == 2:
                     line_bot_api.reply_message(reply_token,
-                                               TextSendMessage(board.get_board_str() + "\nX WON"))
-                elif board.status == 2:
-                    line_bot_api.reply_message(reply_token,
-                                               TextSendMessage(board.get_board_str() + "\n0 WON"))
+                                               TextSendMessage(board.get_board_str() +
+                                                               f"\n{get_player_name(False)} WON"))
                 elif board.status == -1:
                     line_bot_api.reply_message(reply_token,
                                                TextSendMessage(board.get_board_str() + "\nDRAW"))
@@ -172,9 +179,14 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi):
             else:
                 line_bot_api.reply_message(reply_token,
                                            TextSendMessage(board.get_board_str() +
-                                                           f"\n{tic_tac_toe.players[board.turn-1].name} TURN"))
+                                                           f"\n{get_player_name()} TURN\n"
+                                                           f"Type 1-9\n"
+                                                           f"/exit to end the game."))
                 tic_tac_toe.board = pickle.dumps(board)
                 db.session.commit()
             return True
         else:
             return False
+
+
+

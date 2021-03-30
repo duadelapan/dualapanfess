@@ -81,27 +81,31 @@ def callback():
 
 @handler.add(JoinEvent)
 def handle_join_event(event):
-    if event.source.type == "group":
-        line_bot_api.leave_group(event.source.group_id)
+    group_access = Access.query.get(4)
+    if not group_access.accessible:
+        if event.source.type == "group":
+            line_bot_api.leave_group(event.source.group_id)
+        else:
+            line_bot_api.leave_room(event.source.room_id)
     else:
-        line_bot_api.leave_room(event.source.room_id)
-    # if event.source.type == "group":
-    #     name = line_bot_api.get_group_summary(event.source.group_id).group_name
-    # else:
-    #     name = ""
-    # message = f"Halo {name}!\n\n" \
-    #           "Untuk daftar command, ketik /command\n\n" \
-    #           "28 Menfess Twitter Bot:\n" \
-    #           "Keywords: \n" \
-    #           "/tweet28fess\n\n" \
-    #           "Untuk fess tweet, bisa menggunakan command di atas atau chat langsung dengan kata kunci \n" \
-    #           "dupan!\n\n" \
-    #           "FOLLOW\n" \
-    #           "https://twitter.com/28FESS?s=20"
-    # line_bot_api.reply_message(
-    #     event.reply_token,
-    #     TextSendMessage(message)
-    # )
+        if event.source.type == "group":
+            name = line_bot_api.get_group_summary(event.source.group_id).group_name
+        else:
+            name = ""
+        message = f"Halo {name}!\n\n" \
+                  "Untuk daftar command, ketik /command\n\n" \
+                  "28 Menfess Twitter Bot:\n" \
+                  "Keywords: \n" \
+                  "/tweet28fess\n\n" \
+                  "Untuk fess tweet, bisa menggunakan command di atas atau chat langsung dengan kata kunci \n" \
+                  "dupan!\n\n" \
+                  "FOLLOW\n" \
+                  "https://twitter.com/28FESS?s=20\n\n" \
+                  "/bye to make this bot leave"
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(message)
+        )
 
 
 @handler.add(MessageEvent, message=ImageMessage)
@@ -136,21 +140,6 @@ def handle_message(event):
     user_message_lower = user_message.lower()
     reply_token = event.reply_token
     account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
-    print(event.source.type)
-    if event.source.type == "group":
-        group = LineGroup.query.get(event.source.group_id)
-        if not group:
-            group = LineGroup(id=event.source.group_id)
-            group.name = line_bot_api.get_group_summary(group.id).group_name
-            db.session.add(group)
-            db.session.commit()
-        if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
-            if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
-                return
-    elif event.source.type == "room":
-        if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
-            if tictactoe.play(event.source.room_id, account, user_message, reply_token, line_bot_api):
-                return
 
     if not account:
         account = LineAccount(account_id=event.source.user_id)
@@ -167,6 +156,27 @@ def handle_message(event):
             pass
         else:
             db.session.commit()
+
+    if event.source.type == "group":
+        group = LineGroup.query.get(event.source.group_id)
+        if not group:
+            group = LineGroup(id=event.source.group_id)
+            group.name = line_bot_api.get_group_summary(group.id).group_name
+            db.session.add(group)
+            db.session.commit()
+        if user_message_lower == "/bye":
+            line_bot_api.leave_group(group.id)
+            return
+        if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
+            if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
+                return
+    elif event.source.type == "room":
+        if user_message_lower == "/bye":
+            line_bot_api.leave_group(event.source.room_id)
+            return
+        if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
+            if tictactoe.play(event.source.room_id, account, user_message, reply_token, line_bot_api):
+                return
 
     if account.is_add_question:
         account.is_add_question = False
@@ -730,6 +740,15 @@ def handle_message(event):
             lagi_pelajaran_ipa.accessible = not lagi_pelajaran_ipa.accessible
             message = "MIPA enabled" if lagi_pelajaran_ipa.accessible else "MIPA disabled"
             db.session.commit()
+            line_bot_api.reply_message(
+                reply_token,
+                TextSendMessage(message)
+            )
+        elif user_message_lower == "/joingroup":
+            group_access = Access.query.get(4)
+            group_access.accessible = not group_access.accessible
+            db.session.commit()
+            message = "Join group enabled" if all_access.accessible else "Join group disabled"
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(message)
