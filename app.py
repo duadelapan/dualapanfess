@@ -168,15 +168,17 @@ def handle_message(event):
             line_bot_api.leave_group(group.id)
             return
         if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
-            if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
-                return
+            if (account.tic_tac_toe and account.tic_tac_toe.id == group.id) or not account.tic_tac_toe:
+                if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
+                    return
     elif event.source.type == "room":
         if user_message_lower == "/bye":
             line_bot_api.leave_group(event.source.room_id)
             return
         if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
-            if tictactoe.play(event.source.room_id, account, user_message, reply_token, line_bot_api):
-                return
+            if (account.tic_tac_toe and account.tic_tac_toe.id == event.source.room_id) or not account.tic_tac_toe:
+                if tictactoe.play(event.source.room_id, account, user_message, reply_token, line_bot_api):
+                    return
 
     if account.is_add_question:
         account.is_add_question = False
