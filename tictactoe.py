@@ -217,27 +217,27 @@ class ComputerBoard:
     def change_turn(self):
         self.turn *= -1
 
-    def minimax(self, depth, turn):
+    def minimax(self, depth, turn, count=0):
         if turn == COMPUTER:
-            best = [-1, -1, -inf]
+            best = [-1, -1, -inf, 0]
         else:
-            best = [-1, -1, +inf]
+            best = [-1, -1, +inf, 0]
         if depth == 0 or self.game_over():
             score = self.check_stat()
-            return [-1, -1, score]
+            return [-1, -1, score, count]
         cells = self.empty_cells()
         random.shuffle(cells)
         for cell in cells:
             x, y = cell
             self.board[y][x] = turn
-            score = self.minimax(depth-1, -turn)
+            score = self.minimax(depth - 1, -turn, count + 1)
             self.board[y][x] = 0
             score[0], score[1] = x, y
             if turn == COMPUTER:
-                if score[2] > best[2]:
+                if (best[2] == score[2] and best[3] < count) or score[2] > best[2]:
                     best = score
             else:
-                if score[2] < best[2]:
+                if (best[2] == score[2] and best[3] < count) or score[2] < best[2]:
                     best = score
         return best
 
