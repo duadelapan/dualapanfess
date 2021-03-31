@@ -5,8 +5,8 @@ from linebot.models import TextSendMessage
 import random
 from tables import db, TicTacToe, LineAccount
 from math import inf
-HUMAN = 1
-COMPUTER = -1
+HUMAN = -1
+COMPUTER = 1
 
 
 class Board:
@@ -258,8 +258,7 @@ class ComputerBoard:
             x = random.choice([0, 1, 2])
             y = random.choice([0, 1, 2])
         else:
-            move = self.minimax(depth, self.turn)
-            print(move)
+            move = self.minimax(depth, COMPUTER)
             x, y = move[0], move[1]
         self.write(x=x, y=y)
 
