@@ -129,7 +129,10 @@ class ComputerBoard:
 
     def write(self, point=None, x=None, y=None):
         if point:
-            point = int(point)
+            try:
+                point = int(point)
+            except ValueError:
+                return False
             if not 0 < point < 10:
                 return False
             x = (point + 2) % 3
