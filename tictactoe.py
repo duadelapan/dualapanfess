@@ -259,6 +259,7 @@ class ComputerBoard:
             y = random.choice([0, 1, 2])
         else:
             move = self.minimax(depth, self.turn)
+            print(move)
             x, y = move[0], move[1]
         self.write(x=x, y=y)
 
