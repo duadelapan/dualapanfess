@@ -237,10 +237,10 @@ class ComputerBoard:
             self.board[y][x] = 0
             score[0], score[1] = x, y
             if turn == COMPUTER:
-                if (best[2] == score[2] and best[3] < count) or score[2] > best[2]:
+                if (score[2] == 1 and best[3] < count) or score[2] > best[2]:
                     best = score
             else:
-                if (best[2] == score[2] and best[3] < count) or score[2] < best[2]:
+                if (score[2] == 1 and best[3] < count) or score[2] < best[2]:
                     best = score
         return best
 
