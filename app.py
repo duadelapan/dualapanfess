@@ -168,7 +168,7 @@ def handle_message(event):
             line_bot_api.leave_group(group.id)
             return
         if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
-            if (account.tic_tac_toe and account.tic_tac_toe.id == group.id) or not account.tic_tac_toe:
+            if account.tic_tac_toe_id == group.id or not account.tic_tac_toe:
                 if tictactoe.play(group.id, account, user_message, reply_token, line_bot_api):
                     return
     elif event.source.type == "room":
@@ -176,9 +176,13 @@ def handle_message(event):
             line_bot_api.leave_group(event.source.room_id)
             return
         if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
-            if (account.tic_tac_toe and account.tic_tac_toe.id == event.source.room_id) or not account.tic_tac_toe:
+            if account.tic_tac_toe_id == event.source.room_id or not account.tic_tac_toe:
                 if tictactoe.play(event.source.room_id, account, user_message, reply_token, line_bot_api):
                     return
+    if (account.tic_tac_toe and account.tic_tac_toe.is_playing and account.tic_tac_toe_id == account.account_id) \
+            or user_message_lower == "/tictactoecomp":
+        tictactoe.play(account.account_id, account, user_message, reply_token, line_bot_api)
+        return
 
     if account.is_add_question:
         account.is_add_question = False
@@ -750,7 +754,7 @@ def handle_message(event):
             group_access = Access.query.get(4)
             group_access.accessible = not group_access.accessible
             db.session.commit()
-            message = "Join group enabled" if all_access.accessible else "Join group disabled"
+            message = "Join group enabled" if group_access.accessible else "Join group disabled"
             line_bot_api.reply_message(
                 reply_token,
                 TextSendMessage(message)
