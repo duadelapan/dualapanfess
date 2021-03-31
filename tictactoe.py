@@ -270,7 +270,7 @@ class ComputerBoard:
             messages.append(TextSendMessage("Computer turn\n\n" + self.get_board_str()))
             messages.append(TextSendMessage("Your turn, type 1-9"))
         elif len(self.empty_cells()) == 9:
-            messages.append(self.get_board_str())
+            messages.append(TextSendMessage(self.get_board_str()))
             messages.append(TextSendMessage("Your turn, type 1-9"))
         else:
             if self.write(message):
