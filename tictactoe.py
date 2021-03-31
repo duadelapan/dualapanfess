@@ -318,9 +318,7 @@ def play(room_id, player, message, reply_token, line_bot_api: LineBotApi, agains
             board = ComputerBoard()
             tic_tac_toe.board = pickle.dumps(board)
             db.session.add(tic_tac_toe)
-            print("added")
         else:
-            print("ada")
             if message.lower() == "/exit":
                 tic_tac_toe.is_playing = False
                 tic_tac_toe.players.clear()

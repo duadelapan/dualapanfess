@@ -181,7 +181,6 @@ def handle_message(event):
                     return
     if (account.tic_tac_toe and account.tic_tac_toe.is_playing and account.tic_tac_toe_id == account.account_id) \
             or user_message_lower == "/tictactoecomp":
-        print("bisa")
         tictactoe.play(account.account_id, account, user_message, reply_token, line_bot_api, True)
         return
 
