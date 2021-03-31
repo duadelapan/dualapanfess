@@ -269,7 +269,7 @@ class ComputerBoard:
             self.ai_turn()
             messages.append(TextSendMessage("Computer turn\n\n" + self.get_board_str()))
             messages.append(TextSendMessage("Your turn, type 1-9"))
-        elif len(self.empty_cells()) == 9:
+        elif len(self.empty_cells()) == 9 and message.lower() == "/tictactoecomp":
             messages.append(TextSendMessage(self.get_board_str()))
             messages.append(TextSendMessage("Your turn, type 1-9"))
         else:
