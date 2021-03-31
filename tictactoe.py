@@ -278,7 +278,7 @@ class ComputerBoard:
                 status = self.check_stat()
                 if status == -2:
                     self.ai_turn()
-                    messages.append("Computer turn\n\n" + self.get_board_str())
+                    messages.append(TextSendMessage("Computer turn\n\n" + self.get_board_str()))
                     status = self.check_stat()
                     if status == -2:
                         messages.append(TextSendMessage("Your turn, type 1-9"))
