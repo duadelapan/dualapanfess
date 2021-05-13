@@ -210,10 +210,7 @@ def handle_message(event):
         )
     elif user_message_lower == "snmptn":
         day, hour, minute, second = util.get_delta_time(2021, 3, 22, 15)
-        if day*24 + hour < 100:
-            countdown = f"{day*24 + hour} jam {minute} menit {second} detik lagi"
-        else:
-            countdown = f"{day} hari {hour} jam {minute} menit {second} detik lagi."
+        countdown = f"{day} hari {hour} jam {minute} menit {second} detik lagi."
         line_bot_api.reply_message(
             reply_token,
             TemplateSendMessage(
@@ -232,10 +229,10 @@ def handle_message(event):
                 )
             ))
     elif user_message_lower == "sbmptn":
-        day, hour, minute, second = util.get_delta_time(2021, 4, 12)
+        day, hour, minute, second = util.get_delta_time(2021, 6, 14)
         line_bot_api.reply_message(
             reply_token,
-            TextSendMessage(text=f"SBMPTN\n"
+            TextSendMessage(text=f"PENGUMUMAN SBMPTN\n"
                                  f"{get_emoji_str('0x100071')}"
                                  f"{day} hari {hour} jam "
                                  f"{minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
