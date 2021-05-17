@@ -3,6 +3,7 @@ from flask_cors import cross_origin
 from tables import TweetPost
 from flask.json import jsonify
 from twitter_bot import tweet
+from util import filter_tweet
 
 api_app = Blueprint("api_app", __name__, 'static', 'templates')
 
@@ -34,7 +35,7 @@ def post_tweet():
     text = request.json.get('text')
     if 'dupan!' not in text.lower():
         return abort(400)
-    print(text)
+    text = filter_tweet(text)
     link = tweet(text)
     if link.startswith("http"):
         return jsonify({'success': 'tweet uploaded', 'link': link})
