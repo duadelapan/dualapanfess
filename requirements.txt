@@ -44,3 +44,4 @@ uritemplate==3.0.1
 urllib3==1.26.3
 Werkzeug==1.0.1
 TwitterAPI~=2.6.9
+flask-cors==3.0.10

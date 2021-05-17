@@ -166,6 +166,12 @@ def tweet(msg: str, file=None, url=None, account=None):
                     tweet_post2.sender_twitter = account
                     db.session.add(tweet_post2)
             db.session.commit()
+        # if ask_data:
+        #     return {
+        #         'link': f"https://twitter.com/{post.user.screen_name}/status/{post.id}",
+        #         'desc': post.user.description,
+        #         'created_at': post.created_at[:post.created_at.index('+')]
+        #     }
         return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
 
 

@@ -24,12 +24,17 @@ from question import add_question, add_answer, delete_all, delete_question, get_
 from tables import db, LineAccount, LineGroup, Access
 from twitter_bot import tweet, test_tweet
 from webhook_app import webhook_app
+from api import api_app
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.register_blueprint(webhook_app, url_prefix="/webhook")
+app.register_blueprint(api_app, url_prefix="/api")
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 db.app = app
 db.init_app(app)
 db.create_all()
@@ -759,4 +764,4 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
