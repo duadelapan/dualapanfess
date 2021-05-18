@@ -70,7 +70,7 @@ def get_tweet_html():
         if '28fess' in data.get('author_url'):
             html = data.get('html')
             print(html)
-            return jsonify({'html': html})
+            return jsonify({'html': html, 'id': get_id_from_link(data.get('url'))})
         return abort(400)
     return abort(400)
 
