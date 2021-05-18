@@ -19,7 +19,10 @@ def filter_tweet(text):
 
 
 def get_id_from_link(link):
-    return int(link[link.index('status/') + 7:])
+    link = link[link.index('status/') + 7:]
+    if "?" in link:
+        link = link[:link.index("?")]
+    return int(link)
 
 
 def check_timeout(then, sec):
