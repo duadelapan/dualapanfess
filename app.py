@@ -68,6 +68,7 @@ def get_emoji_str(hex_code):
 
 @app.route("/")
 @app.route("/tweet")
+@app.route("/reply")
 def home():
     return render_template("index.html")
 

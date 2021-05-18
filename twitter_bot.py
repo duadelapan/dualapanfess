@@ -111,7 +111,7 @@ def send_confirm_message(user_id, message):
                            CONFIRM_OPTIONS)
 
 
-def tweet(msg: str, file=None, url=None, account=None):
+def tweet(msg: str, file=None, url=None, account=None, reply_id=None):
     if len(msg) > 550:
         return f"❗TWEET ERROR❗\n{len(msg)} exceeds the characters limit (550)."
     media = None
@@ -133,11 +133,11 @@ def tweet(msg: str, file=None, url=None, account=None):
         if file:
             media = api.media_upload(filename="line_img", file=file)
         if media:
-            post = api.update_status(msg, media_ids=[media.media_id])
+            post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[media.media_id])
         elif url:
-            post = api.update_status(msg, media_ids=[upload_media(url)])
+            post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[upload_media(url)])
         else:
-            post = api.update_status(msg)
+            post = api.update_status(msg, in_reply_to_status_id=reply_id)
         if msg2:
             try:
                 post2 = api.update_status(status=msg2, in_reply_to_status_id=post.id)

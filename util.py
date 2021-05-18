@@ -18,6 +18,10 @@ def filter_tweet(text):
     return re.sub(r"(^|[^\w$@])(@|#)([\w]+)", r"\1\2.\3", text)
 
 
+def get_id_from_link(link):
+    return int(link[link.index('status/') + 7:])
+
+
 def check_timeout(then, sec):
     then_datetime = datetime.strptime(then, TIME_FORMAT)
     now = datetime.utcnow()
