@@ -73,3 +73,7 @@ class TicTacToe(db.Model):
     first_player = db.Column(db.String(50))
 
 
+class ReplyToken(db.Model):
+    token = db.Column(db.String(100), primary_key=True)
+
+

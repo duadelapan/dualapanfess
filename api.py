@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_cors import cross_origin
-from tables import TweetPost
+from tables import TweetPost, ReplyToken, db
 from flask.json import jsonify
 from twitter_bot import tweet
 from util import filter_tweet, get_id_from_link
@@ -9,7 +9,6 @@ import uuid
 import requests
 
 api_app = Blueprint("api_app", __name__, 'static', 'templates')
-reply_tokens = []
 
 
 @api_app.route("/")
@@ -41,9 +40,10 @@ def post_tweet():
     reply = request.json.get('reply')
     reply_token = request.json.get('reply_token')
     reply_id = None
-    print(reply_tokens)
+    reply_token_data = None
     if reply:
-        if reply_token not in reply_tokens:
+        reply_token_data = ReplyToken.query.get(reply_token)
+        if not reply_token_data:
             return jsonify({'error': 'Token error, please reload the page'}), HTTPStatus.BAD_REQUEST
         reply_link = request.json.get('reply_link')
         print(reply_link)
@@ -57,8 +57,8 @@ def post_tweet():
         return jsonify({'error': 'dupan! must included'}), HTTPStatus.BAD_REQUEST
     text = filter_tweet(text)
     link = tweet(text, reply_id=reply_id)
-    if reply_token:
-        reply_tokens.remove(reply_token)
+    if reply:
+        db.session.remove(reply_token_data)
     if link.startswith("http"):
         return jsonify({'success': 'tweet uploaded', 'link': link}), HTTPStatus.OK
     return jsonify({'error': 'Upload failed. Try again later.'}), HTTPStatus.FAILED
@@ -75,13 +75,13 @@ def get_tweet_html():
         data = res.json()
         if '28fess' in data.get('author_url'):
             html = data.get('html')
-            reply_token = str(uuid.uuid4())
-            reply_tokens.append(reply_token)
+            reply_token = ReplyToken(token=str(uuid.uuid4()))
+            db.session.add(reply_token)
             print(html)
             return jsonify({
                 'html': html,
                 'id': get_id_from_link(data.get('url')),
-                'reply_token': reply_token
+                'reply_token': reply_token.token
             }), HTTPStatus.OK
         return jsonify({'error': 'Harus tweet yang berasal dari akun 28FESS'}), HTTPStatus.BAD_REQUEST
     return jsonify({'error': 'Link invalid.'}), HTTPStatus.BAD_REQUEST
