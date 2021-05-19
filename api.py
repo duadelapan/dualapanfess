@@ -70,7 +70,6 @@ def get_tweet_html():
     if not link:
         return jsonify({'error': 'Invalid request, no link detected'}), HTTPStatus.BAD_REQUEST
     res = requests.get("https://publish.twitter.com/oembed", params={'url': link})
-    print(res.json())
     if res.ok and 'html' in res.json():
         data = res.json()
         if '28fess' in data.get('author_url'):
