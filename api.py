@@ -41,9 +41,10 @@ def post_tweet():
     reply = request.json.get('reply')
     reply_token = request.json.get('reply_token')
     reply_id = None
+    print(reply_tokens)
     if reply:
         if reply_token not in reply_tokens:
-            return jsonify({'error': 'Token error, please reload the page'})
+            return jsonify({'error': 'Token error, please reload the page'}), HTTPStatus.BAD_REQUEST
         reply_link = request.json.get('reply_link')
         print(reply_link)
         text += "\n \\ Reply Bot \\"
