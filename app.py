@@ -6,7 +6,7 @@ import re
 from html import unescape
 
 import requests
-from flask import Flask, render_template
+from flask import Flask, redirect
 from flask import request, abort
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
@@ -70,7 +70,7 @@ def get_emoji_str(hex_code):
 @app.route("/tweet")
 @app.route("/reply")
 def home():
-    return render_template("index.html")
+    return redirect("https://dualapan.netlify.app" + request.full_path)
 
 
 @app.route("/callback", methods=['POST'])
