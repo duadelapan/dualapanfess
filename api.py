@@ -43,6 +43,7 @@ def post_tweet():
     reply_token_data = None
     if reply:
         reply_token_data = ReplyToken.query.get(reply_token)
+        print(reply_token_data)
         if not reply_token_data:
             return jsonify({'error': 'Token error, please reload the page'}), HTTPStatus.BAD_REQUEST
         reply_link = request.json.get('reply_link')
