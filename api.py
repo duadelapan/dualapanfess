@@ -60,6 +60,7 @@ def post_tweet():
     link = tweet(text, reply_id=reply_id)
     if reply:
         db.session.remove(reply_token_data)
+        db.session.commit()
     if link.startswith("http"):
         return jsonify({'success': 'tweet uploaded', 'link': link}), HTTPStatus.OK
     return jsonify({'error': 'Upload failed. Try again later.'}), HTTPStatus.FAILED
@@ -78,6 +79,7 @@ def get_tweet_html():
             html = data.get('html')
             reply_token = ReplyToken(token=str(uuid.uuid4()))
             db.session.add(reply_token)
+            db.session.commit()
             print(html)
             return jsonify({
                 'html': html,
