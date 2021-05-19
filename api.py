@@ -1,12 +1,15 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, request
 from flask_cors import cross_origin
 from tables import TweetPost
 from flask.json import jsonify
 from twitter_bot import tweet
 from util import filter_tweet, get_id_from_link
+from http import HTTPStatus
+import uuid
 import requests
 
 api_app = Blueprint("api_app", __name__, 'static', 'templates')
+reply_tokens = []
 
 
 @api_app.route("/")
@@ -32,29 +35,32 @@ def test_api():
 @api_app.route("/tweet", methods=["POST"])
 @cross_origin()
 def post_tweet():
-    print(request.json)
     if not request.json or 'text' not in request.json:
-        print("a")
-        return abort(400)
+        return jsonify({'error': 'Invalid request'}), HTTPStatus.BAD_REQUEST
     text = request.json.get('text')
     reply = request.json.get('reply')
+    reply_token = request.json.get('reply_token')
     reply_id = None
     if reply:
+        if reply_token not in reply_tokens:
+            return jsonify({'error': 'Token error, please reload the page'})
         reply_link = request.json.get('reply_link')
         print(reply_link)
         text += "\n \\ Reply Bot \\"
         try:
             reply_id = get_id_from_link(reply_link)
         except (IndexError, ValueError):
-            return abort(400)
+            return jsonify({'error': 'Invalid link'}), HTTPStatus.BAD_REQUEST
 
     if not reply and 'dupan!' not in text.lower():
-        return abort(400)
+        return jsonify({'error': 'dupan! must included'}), HTTPStatus.BAD_REQUEST
     text = filter_tweet(text)
     link = tweet(text, reply_id=reply_id)
+    if reply_token:
+        reply_tokens.remove(reply_token)
     if link.startswith("http"):
-        return jsonify({'success': 'tweet uploaded', 'link': link})
-    return abort(400)
+        return jsonify({'success': 'tweet uploaded', 'link': link}), HTTPStatus.OK
+    return jsonify({'error': 'Upload failed. Try again later.'}), HTTPStatus.FAILED
 
 
 @api_app.route("/get-tweet-html")
@@ -62,16 +68,22 @@ def post_tweet():
 def get_tweet_html():
     link = request.args.get('link')
     if not link:
-        return abort(400)
+        return jsonify({'error': 'Invalid request, no link detected'}), HTTPStatus.BAD_REQUEST
     res = requests.get("https://publish.twitter.com/oembed", params={'url': link})
     print(res.json())
     if res.ok and 'html' in res.json():
         data = res.json()
         if '28fess' in data.get('author_url'):
             html = data.get('html')
+            reply_token = str(uuid.uuid4())
+            reply_tokens.append(reply_token)
             print(html)
-            return jsonify({'html': html, 'id': get_id_from_link(data.get('url'))})
-        return abort(400)
-    return abort(400)
+            return jsonify({
+                'html': html,
+                'id': get_id_from_link(data.get('url')),
+                'reply_token': reply_token
+            }), HTTPStatus.OK
+        return jsonify({'error': 'Harus tweet yang berasal dari akun 28FESS'}), HTTPStatus.BAD_REQUEST
+    return jsonify({'error': 'Link invalid.'}), HTTPStatus.BAD_REQUEST
 
-    
+
