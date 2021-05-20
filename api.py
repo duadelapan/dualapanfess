@@ -59,6 +59,8 @@ def post_tweet():
     if 'media_id' in request.json:
         image = Image.query.get(request.json.get('media_id'))
         link = tweet(text, reply_id=reply_id, file=image.image)
+        db.session.delete(image)
+        db.session.commit()
     else:
         link = tweet(text, reply_id=reply_id)
     if reply:
