@@ -62,7 +62,7 @@ def post_tweet():
         db.session.commit()
     if link.startswith("http"):
         return jsonify({'success': 'tweet uploaded', 'link': link}), HTTPStatus.OK
-    return jsonify({'error': 'Upload failed. Try again later.'}), HTTPStatus.FAILED
+    return jsonify({'error': 'Upload failed. Try again later.'}), HTTPStatus.BAD_REQUEST
 
 
 @api_app.route("/get-tweet-html")
