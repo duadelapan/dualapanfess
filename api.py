@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from flask_cors import cross_origin
 from tables import TweetPost, ReplyToken, db
 from flask.json import jsonify
-from twitter_bot import tweet
+from twitter_bot import tweet, upload_media_get_id
 from util import filter_tweet, get_id_from_link
 from http import HTTPStatus
 import uuid
@@ -41,13 +41,12 @@ def post_tweet():
     reply_token = request.json.get('reply_token')
     reply_id = None
     reply_token_data = None
+    print(request.json)
     if reply:
         reply_token_data = ReplyToken.query.get(reply_token)
-        print(reply_token_data)
         if not reply_token_data:
             return jsonify({'error': 'Token error, please reload the page'}), HTTPStatus.BAD_REQUEST
         reply_link = request.json.get('reply_link')
-        print(reply_link)
         text += "\n \\ Reply Bot \\"
         try:
             reply_id = get_id_from_link(reply_link)
@@ -57,7 +56,7 @@ def post_tweet():
     if not reply and 'dupan!' not in text.lower():
         return jsonify({'error': 'dupan! must included'}), HTTPStatus.BAD_REQUEST
     text = filter_tweet(text)
-    link = tweet(text, reply_id=reply_id)
+    link = tweet(text, reply_id=reply_id, media_id=request.json.get("media_id"))
     if reply:
         db.session.remove(reply_token_data)
         db.session.commit()
@@ -80,7 +79,6 @@ def get_tweet_html():
             reply_token = ReplyToken(token=str(uuid.uuid4()))
             db.session.add(reply_token)
             db.session.commit()
-            print(html)
             return jsonify({
                 'html': html,
                 'id': get_id_from_link(data.get('url')),
@@ -88,5 +86,22 @@ def get_tweet_html():
             }), HTTPStatus.OK
         return jsonify({'error': 'Harus tweet yang berasal dari akun 28FESS'}), HTTPStatus.BAD_REQUEST
     return jsonify({'error': 'Link invalid.'}), HTTPStatus.BAD_REQUEST
+
+
+@api_app.route("/image", methods=["POST"])
+@cross_origin()
+def post_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Bad Request, no file found.'}), HTTPStatus.BAD_REQUEST
+    image = request.files['file']
+    if image.name.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
+        media_id = upload_media_get_id(image)
+        if not media_id:
+            return jsonify({'error': 'failed to upload media to twitter'}), HTTPStatus.FAILED
+        return jsonify({'success': 'Upload media success', 'media_id': media_id}), HTTPStatus.OK
+    return jsonify({'error': 'Image only'}), HTTPStatus.BAD_REQUEST
+
+
+
 
 

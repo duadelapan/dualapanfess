@@ -80,6 +80,14 @@ def upload_media(url):
     return media.media_id
 
 
+def upload_media_get_id(file):
+    try:
+        media = api.media_upload(filename=file.name, file=file)
+    except tweepy.TweepError:
+        return False
+    return media.media_id
+
+
 def test_tweet():
     return api.verify_credentials()
 
@@ -111,7 +119,7 @@ def send_confirm_message(user_id, message):
                            CONFIRM_OPTIONS)
 
 
-def tweet(msg: str, file=None, url=None, account=None, reply_id=None):
+def tweet(msg: str, file=None, url=None, account=None, reply_id=None, media_id=None):
     if len(msg) > 550:
         return f"❗TWEET ERROR❗\n{len(msg)} exceeds the characters limit (550)."
     media = None
@@ -137,7 +145,8 @@ def tweet(msg: str, file=None, url=None, account=None, reply_id=None):
         elif url:
             post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[upload_media(url)])
         else:
-            post = api.update_status(msg, in_reply_to_status_id=reply_id)
+            post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[media_id]) if media_id else \
+                api.update_status(msg, in_reply_to_status_id=reply_id)
         if msg2:
             try:
                 post2 = api.update_status(status=msg2, in_reply_to_status_id=post.id)
