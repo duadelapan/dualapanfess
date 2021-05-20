@@ -58,7 +58,7 @@ def post_tweet():
     text = filter_tweet(text)
     link = tweet(text, reply_id=reply_id, media_id=request.json.get("media_id"))
     if reply:
-        db.session.remove(reply_token_data)
+        db.session.delete(reply_token_data)
         db.session.commit()
     if link.startswith("http"):
         return jsonify({'success': 'tweet uploaded', 'link': link}), HTTPStatus.OK
