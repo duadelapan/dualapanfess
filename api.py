@@ -110,6 +110,17 @@ def post_image():
     return jsonify({'error': 'Image only'}), HTTPStatus.BAD_REQUEST
 
 
-
+@api_app.route("/clear_data")
+def clear_data():
+    token_deleted = 0
+    image_deleted = 0
+    for reply_token in ReplyToken.query.all():
+        token_deleted += 1
+        db.session.delete(reply_token)
+    for image in Image.query.all():
+        image_deleted += 1
+        db.session.delete(image)
+    db.session.commit()
+    return jsonify({'token_deleted': token_deleted, 'image_deleted': image_deleted}), HTTPStatus.OK
 
 
