@@ -58,7 +58,7 @@ def post_tweet():
     if not reply and 'dupan!' not in text.lower():
         return jsonify({'error': 'dupan! must included'}), HTTPStatus.BAD_REQUEST
     text = filter_tweet(text)
-    if 'media_id' in request.json:
+    if request.json.get('media_id'):
         image = Image.query.get(request.json.get('media_id'))
         link = tweet(text, reply_id=reply_id, file=io.BytesIO(image.image))
         db.session.delete(image)
