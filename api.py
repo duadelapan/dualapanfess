@@ -91,10 +91,10 @@ def get_tweet_html():
 @api_app.route("/image", methods=["POST"])
 @cross_origin()
 def post_image():
-    if 'file' not in request.files:
+    if 'files' not in request.files:
         return jsonify({'error': 'Bad Request, no file found.'}), HTTPStatus.BAD_REQUEST
-    image = request.files['file']
-    if image.name.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
+    image = request.files['files']
+    if image.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
         media_id = upload_media_get_id(image)
         if not media_id:
             return jsonify({'error': 'failed to upload media to twitter'}), HTTPStatus.FAILED
