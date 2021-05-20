@@ -1,8 +1,8 @@
 from flask import Blueprint, request
 from flask_cors import cross_origin
-from tables import TweetPost, ReplyToken, db
+from tables import TweetPost, ReplyToken, db, Image
 from flask.json import jsonify
-from twitter_bot import tweet, upload_media_get_id
+from twitter_bot import tweet
 from util import filter_tweet, get_id_from_link
 from http import HTTPStatus
 import uuid
@@ -56,7 +56,11 @@ def post_tweet():
     if not reply and 'dupan!' not in text.lower():
         return jsonify({'error': 'dupan! must included'}), HTTPStatus.BAD_REQUEST
     text = filter_tweet(text)
-    link = tweet(text, reply_id=reply_id, media_id=request.json.get("media_id"))
+    if 'media_id' in request.json:
+        image = Image.query.get(request.json.get('media_id'))
+        link = tweet(text, reply_id=reply_id, file=image.image)
+    else:
+        link = tweet(text, reply_id=reply_id)
     if reply:
         db.session.delete(reply_token_data)
         db.session.commit()
@@ -93,12 +97,12 @@ def get_tweet_html():
 def post_image():
     if 'files' not in request.files:
         return jsonify({'error': 'Bad Request, no file found.'}), HTTPStatus.BAD_REQUEST
-    image = request.files['files']
-    if image.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
-        media_id = upload_media_get_id(image)
-        if not media_id:
-            return jsonify({'error': 'failed to upload media to twitter'}), HTTPStatus.FAILED
-        return jsonify({'success': 'Upload media success', 'media_id': media_id}), HTTPStatus.OK
+    file = request.files['files']
+    if file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
+        image = Image(id=str(uuid.uuid4()), image=file)
+        db.session.add(image)
+        db.session.commit()
+        return jsonify({'success': 'Upload media success', 'media_id': image.id}), HTTPStatus.OK
     return jsonify({'error': 'Image only'}), HTTPStatus.BAD_REQUEST
 
 

@@ -77,3 +77,8 @@ class ReplyToken(db.Model):
     token = db.Column(db.String(100), primary_key=True)
 
 
+class Image(db.Model):
+    id = db.Column(db.String(100), primary_key=True)
+    image = db.Column(db.LargeBinary)
+
+
