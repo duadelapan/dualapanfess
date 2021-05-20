@@ -82,7 +82,7 @@ def upload_media(url):
 
 def upload_media_get_id(file):
     try:
-        media = api.media_upload(filename=file.name, file=file)
+        media = api.media_upload(filename='twitter_img', file=file)
     except tweepy.TweepError:
         return False
     return media.media_id
