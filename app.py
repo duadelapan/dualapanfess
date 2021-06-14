@@ -185,7 +185,7 @@ def handle_message(event):
                     return
     elif event.source.type == "room":
         if user_message_lower == "/bye":
-            line_bot_api.leave_group(event.source.room_id)
+            line_bot_api.leave_room(event.source.room_id)
             return
         if (account.tic_tac_toe and account.tic_tac_toe.is_playing) or user_message_lower == "/tictactoe":
             if account.tic_tac_toe_id == event.source.room_id or not account.tic_tac_toe:

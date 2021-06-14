@@ -148,3 +148,19 @@ dmypy.json
 
 # End of https://www.toptal.com/developers/gitignore/api/flask
 /environ.txt
+migrations/alembic.ini
+migrations/env.py
+migrations/README
+migrations/script.py.mako
+migrations/versions/00de21bdd31f_.py
+migrations/versions/11873fa9d50a_.py
+migrations/versions/1b6551a0dedd_.py
+migrations/versions/5a6e8cd870d0_.py
+migrations/versions/98c56f78d395_.py
+migrations/versions/9e075555ecb2_.py
+migrations/versions/a1a3cf959a5e_.py
+migrations/versions/aac65dcd128c_.py
+migrations/versions/ba5ac6276607_.py
+migrations/versions/c613dac181ac_.py
+migrations/versions/d7cbee8a1dc9_.py
+migrations/versions/fb39cd4a0d94_.py
