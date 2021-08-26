@@ -4,11 +4,11 @@ import time
 
 import requests
 import tweepy
-from TwitterAPI import TwitterAPI
 from requests_oauthlib import OAuth1
+from TwitterAPI import TwitterAPI
 
 import util
-from tables import db, TwitterAccount, LineAccount, TweetPost
+from tables import LineAccount, TweetPost, TwitterAccount, db
 
 ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
 ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
@@ -63,16 +63,17 @@ class DirectMessage:
 
     def get_dict(self):
         return {"event":
-                    {"type": "message_create",
-                     "message_create":
+                {"type": "message_create",
+                 "message_create":
                          {"target":
-                              {"recipient_id": self.recipient_id},
+                          {"recipient_id": self.recipient_id},
                           "message_data": self.message_data.get_dict()
                           }}}
 
 
 def upload_media(url):
-    auth_tweet = OAuth1(API_KEY, API_KEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    auth_tweet = OAuth1(API_KEY, API_KEY_SECRET,
+                        ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     response = requests.get(url, auth=auth_tweet)
     file = io.BytesIO(response.content)
     media = api.media_upload(filename="twitter_img", file=file)
@@ -94,7 +95,8 @@ def test_tweet():
 
 def init_api_object():
     # user authentication
-    api = TwitterAPI(API_KEY, API_KEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    api = TwitterAPI(API_KEY, API_KEY_SECRET,
+                     ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     return api
 
 
@@ -141,15 +143,18 @@ def tweet(msg: str, file=None, url=None, account=None, reply_id=None, media_id=N
         if file:
             media = api.media_upload(filename="line_img", file=file)
         if media:
-            post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[media.media_id])
+            post = api.update_status(
+                msg, in_reply_to_status_id=reply_id, media_ids=[media.media_id])
         elif url:
-            post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[upload_media(url)])
+            post = api.update_status(
+                msg, in_reply_to_status_id=reply_id, media_ids=[upload_media(url)])
         else:
             post = api.update_status(msg, in_reply_to_status_id=reply_id, media_ids=[media_id]) if media_id else \
                 api.update_status(msg, in_reply_to_status_id=reply_id)
         if msg2:
             try:
-                post2 = api.update_status(status=msg2, in_reply_to_status_id=post.id)
+                post2 = api.update_status(
+                    status=msg2, in_reply_to_status_id=post.id)
             except tweepy.error.TweepError as e:
                 print(e)
                 api.destroy_status(post)
@@ -160,8 +165,10 @@ def tweet(msg: str, file=None, url=None, account=None, reply_id=None, media_id=N
         return "Tweet failed. Please try again."
     else:
         if account:
-            tweet_post = TweetPost(id=post.id, time=util.datetime_now_string(), text=msg)
-            tweet_post2 = TweetPost(id=post2.id, time=util.datetime_now_string(), text=msg2) if msg2 else None
+            tweet_post = TweetPost(
+                id=post.id, time=util.datetime_now_string(), text=msg)
+            tweet_post2 = TweetPost(
+                id=post2.id, time=util.datetime_now_string(), text=msg2) if msg2 else None
             if isinstance(account, LineAccount):
                 tweet_post.sender_line = account
                 db.session.add(tweet_post)
@@ -185,7 +192,8 @@ def tweet(msg: str, file=None, url=None, account=None, reply_id=None, media_id=N
 
 
 def dm_quick_reply_options(recipient_id, text, options):
-    auth_tweet = OAuth1(API_KEY, API_KEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    auth_tweet = OAuth1(API_KEY, API_KEY_SECRET,
+                        ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     url = "https://api.twitter.com/1.1/direct_messages/events/new.json"
     header = {
         'content-type': 'application/json'
@@ -269,20 +277,24 @@ def process_direct_message_event(message_obj: DirectMessage):
                                                f"message: (can attach an image)\n\n/canceltweet to cancel ❌\n"
                                                f"request: {time.time()}", CANCEL_OPTIONS)
                     elif phase == "text":
-                        msg = util.filter_tweet(account.next_tweet_msg + message_text)
+                        msg = util.filter_tweet(
+                            account.next_tweet_msg + message_text)
                         account.tweet_phase = "confirm"
                         account.next_tweet_msg = msg
                         if message_obj.message_data.media_url:
-                            account.next_tweet_msg = util.filter_tweet(msg[:util.last_index(msg, " ")])
+                            account.next_tweet_msg = util.filter_tweet(
+                                msg[:util.last_index(msg, " ")])
                             account.img_soon = True
                             account.tweet_phase = "confirm " + message_obj.message_data.media_url
                         send_confirm_message(userID, account.next_tweet_msg)
                     elif phase.startswith("confirm") and message_text_lower == "/send":
                         if account.img_soon:
                             msg_media_url = phase.split(" ")[-1]
-                            url = tweet(account.next_tweet_msg, url=msg_media_url, account=account)
+                            url = tweet(account.next_tweet_msg,
+                                        url=msg_media_url, account=account)
                         else:
-                            url = tweet(account.next_tweet_msg, account=account)
+                            url = tweet(account.next_tweet_msg,
+                                        account=account)
                         if url.startswith("https"):
                             account.last_tweet = now
                             message = f"Tweet Posted.{url}"
@@ -313,18 +325,18 @@ def process_follow_event(follower):
                                 f"✨ WELCOME TO 28FESS {name.upper()}! ✨\n\n"
                                 f"Untuk tweet melalui akun ini, dapat dengan:\n"
                                 f"- chat menggunakan 𝗱𝘂𝗽𝗮𝗻!\n"
-                                f"- keyword /𝘁𝘄𝗲𝗲𝘁𝟮𝟴𝗙𝗘𝗦𝗦 untuk kirim menfess dengan format 'from, to'\n\n"
-                                f"kirim chat melalui 𝗗𝗠 atau 𝗢𝗔 𝗟𝗜𝗡𝗘 𝟮𝟴𝗙𝗘𝗦𝗦 𝗕𝗢𝗧\n"
+                                f"- keyword /𝘁𝘄𝗲𝗲𝘁𝟮𝟴𝗙𝗘𝗦𝗦 untuk kirim menfess dengan format 'from, to'\n"
+                                f"- melalui web interface https://dualapan.netlify.app/\n\n"
                                 f"🛡(PRIVASI TERJAGA)🛡\n\n"
-                                f"Segera kirim menfess pertamamu!\n"
-                                f"https://28fess.carrd.co/")
+                                f"Segera kirim menfess pertamamu!")
     except tweepy.TweepError as e:
         print(e)
         api.send_direct_message(follower_id,
                                 f"✨ SELAMAT DATANG DI 28FESS {name.upper()}! ✨\n\n"
                                 f"Untuk tweet melalui akun ini, dapat dengan:\n"
                                 f"- chat menggunakan 𝗱𝘂𝗽𝗮𝗻!\n"
-                                f"- keyword /𝘁𝘄𝗲𝗲𝘁𝟮𝟴𝗙𝗘𝗦𝗦 untuk kirim menfess dengan format 'from, to'\n\n"
+                                f"- keyword /𝘁𝘄𝗲𝗲𝘁𝟮𝟴𝗙𝗘𝗦𝗦 untuk kirim menfess dengan format 'from, to'\n"
+                                f"- melalui web interface https://dualapan.netlify.app/\n\n"
                                 f"kirim chat melalui 𝗗𝗠 atau 𝗢𝗔 𝗟𝗜𝗡𝗘 𝟮𝟴𝗙𝗘𝗦𝗦 𝗕𝗢𝗧\n"
                                 f"🛡(PRIVASI TERJAGA)🛡\n\n"
                                 f"Segera kirim menfess pertamamu!\n\n"
